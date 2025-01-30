@@ -86,6 +86,8 @@ function ThreeItemShowcaseItem({
 }: {
   item: {
     image: string;
+    isVideo?: boolean;
+    videoStyle?: 'loop' | 'freeze';
     description: string;
     url?: string;
   };
@@ -96,7 +98,9 @@ function ThreeItemShowcaseItem({
     <div className="relative block aspect-square h-full w-full">
       <ShowcaseGridTileImage
         src={item.image}
-        fill
+        isVideo={item.isVideo}
+        videoStyle={item.videoStyle}
+        fill={!item.isVideo}
         sizes={
           size === 'full' ? '(min-width: 768px) 66vw, 100vw' : '(min-width: 768px) 33vw, 100vw'
         }
@@ -137,12 +141,14 @@ export async function ThreeItemGrid() {
     <section className="mx-auto grid max-w-screen-2xl gap-4 px-4 pb-4 md:grid-cols-6 md:grid-rows-2 lg:max-h-[calc(100vh-200px)]">
       <ThreeItemShowcaseItem
         item={{
-          image: "/X1C.png",
+          image: "/X1C.webm",
+          isVideo: true,
+          videoStyle: 'freeze',
           description: "Redefining 3D Printing | Layer by Layer",
           url: "/optional/link" // optional
         }}
-        size="full" // or "half"
-        priority={true} // optional
+        size="full"
+        priority={true}
       />
       <ThreeItemGridItem size="half" item={secondProduct} priority={true} />
       <ThreeItemGridItem size="half" item={thirdProduct} />

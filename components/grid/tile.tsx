@@ -1,5 +1,8 @@
+'use client';
+
 import clsx from 'clsx';
 import Image from 'next/image';
+import { useEffect, useRef } from 'react';
 import Label from '../label';
 
 export function GridTileImage({
@@ -60,7 +63,21 @@ export function ShowcaseGridTileImage({
     title: string;
     position?: 'bottom' | 'center';
   };
-} & React.ComponentProps<typeof Image>) {
+} & (React.ComponentProps<typeof Image> | { src: string; isVideo?: boolean; videoStyle?: 'loop' | 'freeze' })) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if ('isVideo' in props && props.videoStyle === 'freeze' && videoRef.current) {
+      const video = videoRef.current;
+      const handleEnded = () => {
+        video.currentTime = video.duration;
+      };
+      
+      video.addEventListener('ended', handleEnded);
+      return () => video.removeEventListener('ended', handleEnded);
+    }
+  }, [props]);
+
   return (
     <div
       className={clsx(
@@ -72,20 +89,31 @@ export function ShowcaseGridTileImage({
         }
       )}
     >
-      {props.src ? (
-        <Image
-          className={clsx('relative h-full w-full object-contain', {
+      {'isVideo' in props ? (
+        <video
+          ref={videoRef}
+          src={props.src}
+          className={clsx('relative h-full w-full object-cover', {
             'transition duration-300 ease-in-out group-hover:scale-105': isInteractive
           })}
-          {...props}
+          autoPlay
+          loop={props.videoStyle !== 'freeze'}
+          muted
+          playsInline
         />
-      ) : null}
+      ) : (
+        props.src ? (
+          <Image
+            className={clsx('relative h-full w-full object-contain', {
+              'transition duration-300 ease-in-out group-hover:scale-105': isInteractive
+            })}
+            {...props as React.ComponentProps<typeof Image>}
+          />
+        ) : null
+      )}
       {label ? (
         <div className={clsx(
           'absolute bottom-4 left-4',
-          // {
-          //   'flex h-full w-full items-center justify-center': label.position === 'center',
-          // }
         )}>
           <div className={clsx(
             'inline-flex rounded-lg border border-neutral-200 bg-black/70 px-4 py-2 text-white backdrop-blur-md dark:border-neutral-800',
