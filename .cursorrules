@@ -1,0 +1,125 @@
+# Mandarin 3D E-commerce Project Rules and Memory
+
+## Tech Stack
+- Next.js 14 (App Router)
+- TypeScript
+- Prisma (PostgreSQL)
+- Tailwind CSS
+- React Server Components
+- Edge Runtime where possible
+
+## Coding Standards
+
+### TypeScript
+- Strict type checking enabled
+- No 'any' types unless absolutely necessary
+- Use interface for object types
+- Use type for union types or simple aliases
+
+### Database (Prisma)
+- Always update dateUpdated when modifying records
+- Use meaningful relation names
+- Include proper cascading deletes
+- Always handle nullable fields explicitly
+
+### Styling
+- Use Tailwind classes for styling
+- Follow BEM-like naming for custom classes
+- Use CSS variables for theme colors:
+  - --m3d-primary: Primary brand color
+  - --m3d-primary-border: Border color variant
+- Dark mode support required for all components
+
+### Components
+- Use React Icons (react-icons/fa) for icons
+- Server Components by default
+- 'use client' only when necessary
+- Props interface for all components
+- Proper error boundaries
+- Loading states for async components
+
+### API Routes
+- Proper error handling with appropriate status codes
+- Validate input data
+- Use Edge runtime when possible
+- Consistent response format:
+  ```typescript
+  {
+    success: boolean;
+    data?: any;
+    error?: string;
+  }
+  ```
+
+### Forms
+- Client-side validation
+- Loading states
+- Error handling
+- Success feedback
+- Accessible inputs
+- Required field indicators
+
+## Project Structure
+/app - Next.js app router pages
+/components - Reusable components
+/lib - Utility functions and shared code
+/prisma - Database schema and migrations
+/public - Static assets
+
+## Current Features
+- Product catalog
+- Shopping cart
+- User authentication
+- Contact form
+- Static pages
+- Search functionality
+- Collections
+- Dark mode support
+
+## Pending Tasks & Ideas
+[ ] Admin dashboard for managing products
+[ ] Order management system
+[ ] User reviews and ratings
+[ ] Inventory tracking
+[ ] Email notifications for orders
+[ ] Better mobile navigation
+[ ] Performance optimization for images
+[ ] Analytics integration
+[ ] SEO improvements
+[ ] Automated testing setup
+[ ] CI/CD pipeline
+[ ] Better error pages
+[ ] Rate limiting for API routes
+[ ] Caching strategy implementation
+[ ] Accessibility audit
+[ ] Security audit
+
+## Notes
+- Moving away from Shopify to full Prisma implementation
+- Focus on performance and SEO
+- Maintain consistent dark mode support
+- Keep accessibility in mind for all new features
+
+## Environment Variables Required
+- DATABASE_URL: PostgreSQL connection string
+- NEXT_PUBLIC_API_URL: API base URL
+- Additional vars as needed for future integrations
+
+## Commands to Remember
+```bash
+# Database
+bunx prisma generate
+bunx prisma migrate dev
+bunx prisma db seed
+
+# Development
+bun run dev
+bun run build
+bun run lint
+```
+
+## Last Updated
+2025-01-30
+
+---
+Note: This file should be updated whenever significant changes are made to the project structure or when new standards are established. Or when new roadmap items are added.
