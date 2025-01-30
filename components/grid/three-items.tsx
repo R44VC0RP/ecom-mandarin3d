@@ -1,4 +1,4 @@
-import { GridTileImage } from 'components/grid/tile';
+import { GridTileImage, ShowcaseGridTileImage } from 'components/grid/tile';
 import { prisma } from 'lib/prisma';
 import Link from 'next/link';
 
@@ -79,6 +79,52 @@ function ThreeItemGridItem({
   );
 }
 
+function ThreeItemShowcaseItem({
+  item,
+  size,
+  priority
+}: {
+  item: {
+    image: string;
+    description: string;
+    url?: string;
+  };
+  size: 'full' | 'half';
+  priority?: boolean;
+}) {
+  const Content = () => (
+    <div className="relative block aspect-square h-full w-full">
+      <ShowcaseGridTileImage
+        src={item.image}
+        fill
+        sizes={
+          size === 'full' ? '(min-width: 768px) 66vw, 100vw' : '(min-width: 768px) 33vw, 100vw'
+        }
+        priority={priority}
+        alt={item.description}
+        label={{
+          position: 'center',
+          title: item.description
+        }}
+      />
+    </div>
+  );
+
+  return (
+    <div
+      className={size === 'full' ? 'md:col-span-4 md:row-span-2' : 'md:col-span-2 md:row-span-1'}
+    >
+      {item.url ? (
+        <Link className="relative block aspect-square h-full w-full" href={item.url} prefetch={true}>
+          <Content />
+        </Link>
+      ) : (
+        <Content />
+      )}
+    </div>
+  );
+}
+
 export async function ThreeItemGrid() {
   // Collections that start with `hidden-*` are hidden from the search page.
   const homepageItems = await getCollectionProducts('hidden-homepage-featured-items');
@@ -89,9 +135,19 @@ export async function ThreeItemGrid() {
 
   return (
     <section className="mx-auto grid max-w-screen-2xl gap-4 px-4 pb-4 md:grid-cols-6 md:grid-rows-2 lg:max-h-[calc(100vh-200px)]">
-      <ThreeItemGridItem size="full" item={firstProduct} priority={true} />
+      <ThreeItemShowcaseItem
+        item={{
+          image: "/X1C.png",
+          description: "Redefining 3D Printing | Layer by Layer",
+          url: "/optional/link" // optional
+        }}
+        size="full" // or "half"
+        priority={true} // optional
+      />
       <ThreeItemGridItem size="half" item={secondProduct} priority={true} />
       <ThreeItemGridItem size="half" item={thirdProduct} />
     </section>
   );
 }
+
+export { ThreeItemGridItem, ThreeItemShowcaseItem };
