@@ -93,6 +93,7 @@
 [ ] Caching strategy implementation
 [ ] Accessibility audit
 [ ] Security audit
+[ ] Set up admin route styling with data-admin-route attribute
 
 ## Notes
 - Moving away from Shopify to full Prisma implementation
