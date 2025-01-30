@@ -30,6 +30,10 @@
   - --m3d-primary-border: Border color variant
 - Dark mode support required for all components
 
+### Admin Dashboard Setup
+- The file app-sidebar.tsx is the main sidebar for the admin dashboard. It contains the object that defines the sidebar items, whenever you update or add a new sidebar item, you must update the object in the file app-sidebar.tsx for the changes to be reflected in the sidebar.
+- For each new page make it with "<div className="flex flex-col p-6">" as the top level container.
+
 ### Components
 - Use React Icons (react-icons/fa) for icons
 - Server Components by default
@@ -65,6 +69,44 @@
 /lib - Utility functions and shared code
 /prisma - Database schema and migrations
 /public - Static assets
+
+## Admin Panel Pages (In Progress)
+1. Products List Page (/dashboard/products)
+   - Table view of all products
+   - Quick actions (edit, delete)
+   - Filtering and sorting
+   - Status: Completed ✅
+
+2. Product Create/Edit Page (/dashboard/products/[id])
+   - Form for product details
+   - Image upload/management
+   - Variant management
+   - Price management
+   - SEO settings
+   - Status: Not Started ⏳
+
+3. Collections List Page (/dashboard/collections)
+   - Table view of all collections
+   - Quick actions (edit, delete)
+   - Status: Not Started ⏳
+
+4. Collection Create/Edit Page (/dashboard/collections/[id])
+   - Form for collection details
+   - Product association management
+   - SEO settings
+   - Status: Not Started ⏳
+
+5. Product Variants Management Page (/dashboard/products/[id]/variants)
+   - Create/edit variants
+   - Bulk price updates
+   - Inventory management
+   - Status: Not Started ⏳
+
+6. Media Library Page (/dashboard/media)
+   - Image upload and management
+   - Image optimization
+   - Alt text management
+   - Status: Not Started ⏳
 
 ## Current Features
 - Product catalog

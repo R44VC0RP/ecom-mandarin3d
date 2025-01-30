@@ -1,52 +1,34 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
 
-export default function Page() {
+export default function DashboardPage() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+    <div className="flex min-h-screen">
+        <div className="flex flex-col p-6">
+          <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+          
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse border border-neutral-200 dark:border-neutral-800">
+              <thead>
+                <tr className="bg-neutral-100 dark:bg-neutral-900">
+                  <th className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">ID</th>
+                  <th className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">Name</th>
+                  <th className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">Status</th>
+                  <th className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5].map((row) => (
+                  <tr key={row} className="hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                    <td className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">{row}</td>
+                    <td className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">Sample Item {row}</td>
+                    <td className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">Active</td>
+                    <td className="border border-neutral-200 dark:border-neutral-800 px-4 py-2">2024-01-{row + 10}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-neutral-100/50 dark:bg-neutral-800/50" />
-            <div className="aspect-video rounded-xl bg-neutral-100/50 dark:bg-neutral-800/50" />
-            <div className="aspect-video rounded-xl bg-neutral-100/50 dark:bg-neutral-800/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-neutral-100/50 md:min-h-min dark:bg-neutral-800/50" />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   )
 }
+
