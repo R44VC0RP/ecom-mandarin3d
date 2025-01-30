@@ -1,10 +1,10 @@
-import { getCollectionProducts } from 'lib/shopify';
+import { getCollectionProducts } from 'lib/prisma-queries';
 import Link from 'next/link';
 import { GridTileImage } from './grid/tile';
 
 export async function Carousel() {
-  // Collections that start with `hidden-*` are hidden from the search page.
-  const products = await getCollectionProducts({ collection: 'hidden-homepage-carousel' });
+  // We're using the featured collection from our seed data
+  const products = await getCollectionProducts({ collection: 'hidden-homepage-featured-items' });
 
   if (!products?.length) return null;
 
@@ -24,10 +24,10 @@ export async function Carousel() {
                 alt={product.title}
                 label={{
                   title: product.title,
-                  amount: product.priceRange.maxVariantPrice.amount,
-                  currencyCode: product.priceRange.maxVariantPrice.currencyCode
+                  amount: product.priceRange?.maxVariantPrice.amount || '0',
+                  currencyCode: product.priceRange?.maxVariantPrice.currencyCode || 'USD'
                 }}
-                src={product.featuredImage?.url}
+                src={product.featuredImage?.url || ''}
                 fill
                 sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
               />

@@ -1,14 +1,52 @@
 import { GridTileImage } from 'components/grid/tile';
-import { getCollectionProducts } from 'lib/shopify';
-import type { Product } from 'lib/shopify/types';
+import { prisma } from 'lib/prisma';
 import Link from 'next/link';
+
+async function getCollectionProducts(collection: string) {
+  const collectionData = await prisma.collection.findUnique({
+    where: { handle: collection },
+    include: {
+      products: {
+        include: {
+          product: {
+            include: {
+              featuredImage: true,
+              priceRange: {
+                include: {
+                  maxVariantPrice: true,
+                  minVariantPrice: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!collectionData) {
+    return [];
+  }
+
+  return collectionData.products.map(cp => cp.product);
+}
 
 function ThreeItemGridItem({
   item,
   size,
   priority
 }: {
-  item: Product;
+  item: {
+    handle: string;
+    title: string;
+    featuredImage: { url: string } | null;
+    priceRange: {
+      maxVariantPrice: {
+        amount: string;
+        currencyCode: string;
+      };
+    } | null;
+  };
   size: 'full' | 'half';
   priority?: boolean;
 }) {
@@ -22,7 +60,7 @@ function ThreeItemGridItem({
         prefetch={true}
       >
         <GridTileImage
-          src={item.featuredImage.url}
+          src={item.featuredImage?.url || ''}
           fill
           sizes={
             size === 'full' ? '(min-width: 768px) 66vw, 100vw' : '(min-width: 768px) 33vw, 100vw'
@@ -31,9 +69,9 @@ function ThreeItemGridItem({
           alt={item.title}
           label={{
             position: size === 'full' ? 'center' : 'bottom',
-            title: item.title as string,
-            amount: item.priceRange.maxVariantPrice.amount,
-            currencyCode: item.priceRange.maxVariantPrice.currencyCode
+            title: item.title,
+            amount: item.priceRange?.maxVariantPrice.amount || '0',
+            currencyCode: item.priceRange?.maxVariantPrice.currencyCode || 'USD'
           }}
         />
       </Link>
@@ -43,9 +81,7 @@ function ThreeItemGridItem({
 
 export async function ThreeItemGrid() {
   // Collections that start with `hidden-*` are hidden from the search page.
-  const homepageItems = await getCollectionProducts({
-    collection: 'hidden-homepage-featured-items'
-  });
+  const homepageItems = await getCollectionProducts('hidden-homepage-featured-items');
 
   if (!homepageItems[0] || !homepageItems[1] || !homepageItems[2]) return null;
 

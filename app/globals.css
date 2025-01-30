@@ -8,6 +8,11 @@
   }
 }
 
+:root {
+  --m3d-primary: #00ACB4;
+  --m3d-primary-border: #19acb4;
+}
+
 @supports (font: -apple-system-body) and (-webkit-appearance: none) {
   img[loading='lazy'] {
     clip-path: inset(0.6px);

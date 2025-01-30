@@ -97,7 +97,9 @@ export default function CartModal() {
                       .map((item, i) => {
                         const merchandiseSearchParams = {} as MerchandiseSearchParams;
 
-                        item.merchandise.selectedOptions.forEach(({ name, value }) => {
+                        // Safely handle selectedOptions
+                        const selectedOptions = item.merchandise.selectedOptions || [];
+                        selectedOptions.forEach(({ name, value }) => {
                           if (value !== DEFAULT_OPTION) {
                             merchandiseSearchParams[name.toLowerCase()] = value;
                           }
@@ -119,16 +121,18 @@ export default function CartModal() {
                               </div>
                               <div className="flex flex-row">
                                 <div className="relative h-16 w-16 overflow-hidden rounded-md border border-neutral-300 bg-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800">
-                                  <Image
-                                    className="h-full w-full object-cover"
-                                    width={64}
-                                    height={64}
-                                    alt={
-                                      item.merchandise.product.featuredImage.altText ||
-                                      item.merchandise.product.title
-                                    }
-                                    src={item.merchandise.product.featuredImage.url}
-                                  />
+                                  {item.merchandise.product.featuredImage && (
+                                    <Image
+                                      className="h-full w-full object-cover"
+                                      width={64}
+                                      height={64}
+                                      alt={
+                                        item.merchandise.product.featuredImage.altText ||
+                                        item.merchandise.product.title
+                                      }
+                                      src={item.merchandise.product.featuredImage.url}
+                                    />
+                                  )}
                                 </div>
                                 <Link
                                   href={merchandiseUrl}
@@ -150,8 +154,8 @@ export default function CartModal() {
                               <div className="flex h-16 flex-col justify-between">
                                 <Price
                                   className="flex justify-end space-y-2 text-right text-sm"
-                                  amount={item.cost.totalAmount.amount}
-                                  currencyCode={item.cost.totalAmount.currencyCode}
+                                  amount={item.merchandise.price.amount}
+                                  currencyCode={item.merchandise.price.currencyCode}
                                 />
                                 <div className="ml-auto flex h-9 flex-row items-center rounded-full border border-neutral-200 dark:border-neutral-700">
                                   <EditItemQuantityButton
@@ -196,7 +200,12 @@ export default function CartModal() {
                       />
                     </div>
                   </div>
-                  <form action={redirectToCheckout}>
+                  <form action={async (formData: FormData): Promise<void> => {
+                    const result = await redirectToCheckout();
+                    if (result !== 'No checkout URL available') {
+                      closeCart();
+                    }
+                  }}>
                     <CheckoutButton />
                   </form>
                 </div>

@@ -1,11 +1,13 @@
 import OpengraphImage from 'components/opengraph-image';
-import { getPage } from 'lib/shopify';
+import { prisma } from 'lib/prisma';
 
 export const runtime = 'edge';
 
 export default async function Image({ params }: { params: { page: string } }) {
-  const page = await getPage(params.page);
-  const title = page.seo?.title || page.title;
+  const page = await prisma.page.findUnique({
+    where: { slug: params.page }
+  });
+  const title = page?.metaTitle || page?.title;
 
   return await OpengraphImage({ title });
 }

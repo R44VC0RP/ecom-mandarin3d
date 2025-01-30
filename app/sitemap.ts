@@ -1,4 +1,4 @@
-import { getCollections, getPages, getProducts } from 'lib/shopify';
+import { getCollections, getPages, getProducts } from 'lib/prisma-queries';
 import { validateEnvironmentVariables } from 'lib/utils';
 import { MetadataRoute } from 'next';
 
@@ -24,21 +24,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const collectionsPromise = getCollections().then((collections) =>
     collections.map((collection) => ({
       url: `${baseUrl}${collection.path}`,
-      lastModified: collection.updatedAt
+      lastModified: new Date(collection.updatedAt).toISOString()
     }))
   );
 
   const productsPromise = getProducts({}).then((products) =>
     products.map((product) => ({
       url: `${baseUrl}/product/${product.handle}`,
-      lastModified: product.updatedAt
+      lastModified: new Date(product.updatedAt).toISOString()
     }))
   );
 
   const pagesPromise = getPages().then((pages) =>
     pages.map((page) => ({
       url: `${baseUrl}/${page.handle}`,
-      lastModified: page.updatedAt
+      lastModified: new Date(page.updatedAt).toISOString()
     }))
   );
 

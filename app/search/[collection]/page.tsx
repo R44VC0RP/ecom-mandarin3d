@@ -1,10 +1,11 @@
-import { getCollection, getCollectionProducts } from 'lib/shopify';
+import { getCollection, getCollectionProducts } from 'lib/prisma-queries';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import Grid from 'components/grid';
 import ProductGridItems from 'components/layout/product-grid-items';
 import { defaultSort, sorting } from 'lib/constants';
+import { Product } from 'lib/types';
 
 export async function generateMetadata(props: {
   params: Promise<{ collection: string }>;
@@ -37,7 +38,7 @@ export default async function CategoryPage(props: {
         <p className="py-3 text-lg">{`No products found in this collection`}</p>
       ) : (
         <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          <ProductGridItems products={products} />
+          <ProductGridItems products={products as Product[]} />
         </Grid>
       )}
     </section>

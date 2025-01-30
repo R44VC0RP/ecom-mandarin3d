@@ -1,6 +1,7 @@
 'use client';
 
-import type { Cart, CartItem, Product, ProductVariant } from 'lib/shopify/types';
+import { Product, ProductVariant } from 'lib/types';
+import { Cart, CartLine } from 'lib/types/cart';
 import React, { createContext, use, useContext, useMemo, useOptimistic } from 'react';
 
 type UpdateType = 'plus' | 'minus' | 'delete';
@@ -21,49 +22,30 @@ function calculateItemCost(quantity: number, price: string): string {
   return (Number(price) * quantity).toString();
 }
 
-function updateCartItem(item: CartItem, updateType: UpdateType): CartItem | null {
+function updateCartItem(item: CartLine, updateType: UpdateType): CartLine | null {
   if (updateType === 'delete') return null;
 
   const newQuantity = updateType === 'plus' ? item.quantity + 1 : item.quantity - 1;
   if (newQuantity === 0) return null;
 
-  const singleItemAmount = Number(item.cost.totalAmount.amount) / item.quantity;
-  const newTotalAmount = calculateItemCost(newQuantity, singleItemAmount.toString());
-
   return {
     ...item,
-    quantity: newQuantity,
-    cost: {
-      ...item.cost,
-      totalAmount: {
-        ...item.cost.totalAmount,
-        amount: newTotalAmount
-      }
-    }
+    quantity: newQuantity
   };
 }
 
 function createOrUpdateCartItem(
-  existingItem: CartItem | undefined,
+  existingItem: CartLine | undefined,
   variant: ProductVariant,
   product: Product
-): CartItem {
-  const quantity = existingItem ? existingItem.quantity + 1 : 1;
-  const totalAmount = calculateItemCost(quantity, variant.price.amount);
-
+): CartLine {
   return {
-    id: existingItem?.id,
-    quantity,
-    cost: {
-      totalAmount: {
-        amount: totalAmount,
-        currencyCode: variant.price.currencyCode
-      }
-    },
+    id: existingItem?.id || '',
+    quantity: existingItem ? existingItem.quantity + 1 : 1,
     merchandise: {
       id: variant.id,
       title: variant.title,
-      selectedOptions: variant.selectedOptions,
+      price: variant.price,
       product: {
         id: product.id,
         handle: product.handle,
@@ -74,17 +56,18 @@ function createOrUpdateCartItem(
   };
 }
 
-function updateCartTotals(lines: CartItem[]): Pick<Cart, 'totalQuantity' | 'cost'> {
+function updateCartTotals(lines: CartLine[]): Pick<Cart, 'totalQuantity' | 'cost'> {
   const totalQuantity = lines.reduce((sum, item) => sum + item.quantity, 0);
-  const totalAmount = lines.reduce((sum, item) => sum + Number(item.cost.totalAmount.amount), 0);
-  const currencyCode = lines[0]?.cost.totalAmount.currencyCode ?? 'USD';
+  const totalAmount = lines.reduce((sum, item) => sum + Number(item.merchandise.price.amount) * item.quantity, 0);
+  const currencyCode = lines[0]?.merchandise.price.currencyCode ?? 'USD';
 
   return {
     totalQuantity,
     cost: {
-      subtotalAmount: { amount: totalAmount.toString(), currencyCode },
-      totalAmount: { amount: totalAmount.toString(), currencyCode },
-      totalTaxAmount: { amount: '0', currencyCode }
+      id: '',
+      subtotalAmount: { id: '', amount: totalAmount.toString(), currencyCode },
+      totalAmount: { id: '', amount: totalAmount.toString(), currencyCode },
+      totalTaxAmount: { id: '', amount: '0', currencyCode }
     }
   };
 }
@@ -92,13 +75,13 @@ function updateCartTotals(lines: CartItem[]): Pick<Cart, 'totalQuantity' | 'cost
 function createEmptyCart(): Cart {
   return {
     id: undefined,
-    checkoutUrl: '',
     totalQuantity: 0,
     lines: [],
     cost: {
-      subtotalAmount: { amount: '0', currencyCode: 'USD' },
-      totalAmount: { amount: '0', currencyCode: 'USD' },
-      totalTaxAmount: { amount: '0', currencyCode: 'USD' }
+      id: '',
+      subtotalAmount: { id: '', amount: '0', currencyCode: 'USD' },
+      totalAmount: { id: '', amount: '0', currencyCode: 'USD' },
+      totalTaxAmount: { id: '', amount: '0', currencyCode: 'USD' }
     }
   };
 }
@@ -113,18 +96,10 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
         .map((item) =>
           item.merchandise.id === merchandiseId ? updateCartItem(item, updateType) : item
         )
-        .filter(Boolean) as CartItem[];
+        .filter(Boolean) as CartLine[];
 
       if (updatedLines.length === 0) {
-        return {
-          ...currentCart,
-          lines: [],
-          totalQuantity: 0,
-          cost: {
-            ...currentCart.cost,
-            totalAmount: { ...currentCart.cost.totalAmount, amount: '0' }
-          }
-        };
+        return createEmptyCart();
       }
 
       return { ...currentCart, ...updateCartTotals(updatedLines), lines: updatedLines };
