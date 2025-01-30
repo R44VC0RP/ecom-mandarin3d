@@ -78,4 +78,16 @@ export type Page = {
   seo: SEO | null;
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type CartItem = {
+  id: string;
+  quantity: number;
+  cartId: string;
+  productId: string;
+  variantId: string;
+  totalAmount: Money;
+  totalAmountId: string;
+  product: Product;
+  variant: ProductVariant;
 }; 

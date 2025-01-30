@@ -121,5 +121,9 @@ bun run lint
 ## Last Updated
 2025-01-30
 
+## Git Rules
+- Use git commit -m "message" to commit changes and format the messages in the standard classic commit message format.
+- If a new feature is added, ask the user if they want to commit it to the main branch and push. If they just say commit then run git add . & git commit -m "message", remember to be descriptive in the commit message. If they say push then run git add . & git commit -m "message" & git push.
+
 ---
 Note: This file should be updated whenever significant changes are made to the project structure or when new standards are established. Or when new roadmap items are added.

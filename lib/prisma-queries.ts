@@ -88,8 +88,19 @@ export async function getProducts({
       : undefined,
   });
 
+  // Parse selectedOptions JSON for each variant
+  const parsedProducts = products.map(product => ({
+    ...product,
+    variants: product.variants.map(variant => ({
+      ...variant,
+      selectedOptions: typeof variant.selectedOptions === 'string'
+        ? JSON.parse(variant.selectedOptions as string)
+        : variant.selectedOptions
+    }))
+  }));
+
   console.timeEnd('getProducts');
-  return products;
+  return parsedProducts;
 }
 
 export async function getCollection(handle: string) {
@@ -588,5 +599,16 @@ export async function updateCartItem(cartId: string, lineId: string, quantity: n
       totalAmount: true,
       totalTaxAmount: true,
     },
+  });
+}
+
+export async function getPages() {
+  return prisma.page.findMany({
+    where: {
+      published: true
+    },
+    orderBy: {
+      updatedAt: 'desc'
+    }
   });
 } 

@@ -1,8 +1,9 @@
 'use client';
 
+import { ProductOption } from '@prisma/client';
 import clsx from 'clsx';
 import { useProduct, useUpdateURL } from 'components/product/product-context';
-import { ProductOption, ProductVariant } from 'lib/shopify/types';
+import { ProductVariant } from 'lib/types';
 
 type Combination = {
   id: string;
