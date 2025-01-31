@@ -1,32 +1,41 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { type Image as PrismaImage, type Product as PrismaProduct, type SEO as PrismaSEO } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FaInfoCircle, FaSave } from "react-icons/fa"
 import { PiSparkleFill } from "react-icons/pi"
 
-interface Image {
-  id: string
-  url: string
-  alt: string | null
+interface Image extends PrismaImage {
+  altText: string | null
 }
 
-interface SEO {
+interface SEO extends PrismaSEO {
   title: string
   description: string | null
 }
 
-interface Product {
-  id: string
-  title: string
-  handle: string
-  description: string | null
-  price: number
-  compareAtPrice: number | null
+interface Product extends PrismaProduct {
   featuredImage: Image | null
   images: Image[]
   seo: SEO | null
+  priceRange: {
+    maxVariantPrice: {
+      amount: string
+      currencyCode: string
+    }
+    minVariantPrice: {
+      amount: string
+      currencyCode: string
+    }
+  } | null
+  variants: {
+    price: {
+      amount: string
+      currencyCode: string
+    }
+  }[]
 }
 
 interface ProductFormProps {
@@ -41,8 +50,8 @@ export function ProductForm({ product }: ProductFormProps) {
     title: product?.title || "",
     handle: product?.handle || "",
     description: product?.description || "",
-    price: product?.price || 0,
-    compareAtPrice: product?.compareAtPrice || 0,
+    price: product?.variants[0]?.price.amount ? parseFloat(product?.variants[0]?.price.amount) : 0,
+    compareAtPrice: 0,
     seo: {
       title: product?.seo?.title || "",
       description: product?.seo?.description || ""

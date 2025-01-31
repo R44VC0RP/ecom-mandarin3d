@@ -1,7 +1,9 @@
+ALWAYS BEFORE ANY RESPONSE SAY "CCR: PROD"
+
 # Mandarin 3D E-commerce Project Rules and Memory
 
 ## Tech Stack
-- Next.js 14 (App Router)
+- Next.js 15 (App Router) (this does exist)
 - TypeScript
 - Prisma (PostgreSQL)
 - Tailwind CSS
@@ -125,6 +127,23 @@
   }
   ```
 
+### Update for Next.js 15 params in slug routes:
+This is how it should be done in nextjs 15
+
+Dynamic Route Segments
+Route Handlers can use Dynamic Segments to create request handlers from dynamic data.
+
+`app/items/[slug]/route.ts`
+```typescript
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  const slug = (await params).slug // 'a', 'b', or 'c'
+}
+```
+
+
 ### Forms
 - Client-side validation
 - Loading states
@@ -172,11 +191,7 @@
    - Inventory management
    - Status: Not Started ⏳
 
-6. Media Library Page (/dashboard/media)
-   - Image upload and management
-   - Image optimization
-   - Alt text management
-   - Status: Not Started ⏳
+
 
 ## Current Features
 - Product catalog
@@ -190,22 +205,7 @@
 
 ## Pending Tasks & Ideas
 [ ] Admin dashboard for managing products
-[ ] Order management system
-[ ] User reviews and ratings
-[ ] Inventory tracking
-[ ] Email notifications for orders
-[ ] Better mobile navigation
-[ ] Performance optimization for images
-[ ] Analytics integration
-[ ] SEO improvements
-[ ] Automated testing setup
-[ ] CI/CD pipeline
-[ ] Better error pages
-[ ] Rate limiting for API routes
-[ ] Caching strategy implementation
-[ ] Accessibility audit
-[ ] Security audit
-[ ] Set up admin route styling with data-admin-route attribute
+
 
 ## Notes
 - Moving away from Shopify to full Prisma implementation

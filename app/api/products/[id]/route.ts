@@ -1,14 +1,12 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
-interface Params {
-  params: {
-    id: string
-  }
-}
-
-export async function PUT(request: Request, { params }: Params) {
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const id = (await params).id
     const body = await request.json()
     const { title, handle, description, price, compareAtPrice, seo } = body
 
@@ -25,7 +23,7 @@ export async function PUT(request: Request, { params }: Params) {
       where: {
         handle,
         NOT: {
-          id: params.id
+          id: id
         }
       }
     })
@@ -39,14 +37,12 @@ export async function PUT(request: Request, { params }: Params) {
 
     // Update product
     const product = await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title,
         handle,
         description,
-        price: price || 0,
-        compareAtPrice: compareAtPrice || null,
-        dateUpdated: new Date(),
+        updatedAt: new Date(),
         seo: {
           upsert: {
             create: {
@@ -75,11 +71,15 @@ export async function PUT(request: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const id = (await params).id
     // Delete product
     await prisma.product.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({

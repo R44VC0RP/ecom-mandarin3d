@@ -3,22 +3,32 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 
 interface Props {
-  params: {
-    id: string
-  }
+  params: Promise<{ id: string }>
 }
 
 export default async function ProductPage({ params }: Props) {
-  const isNew = params.id === "new"
+  const { id } = await params
+  const isNew = id === "new"
   let product = null
 
   if (!isNew) {
     product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         featuredImage: true,
         images: true,
-        seo: true
+        seo: true,
+        priceRange: {
+          include: {
+            maxVariantPrice: true,
+            minVariantPrice: true
+          }
+        },
+        variants: {
+          include: {
+            price: true
+          }
+        }
       }
     })
 
@@ -34,10 +44,10 @@ export default async function ProductPage({ params }: Props) {
           {isNew ? "New Product" : "Edit Product"}
         </h1>
         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          {isNew ? "Create a new product" : `Edit ${product.title}`}
+          {isNew ? "Create a new product" : `Edit ${product?.title || ''}`}
         </p>
       </div>
-      <ProductForm product={product} />
+      <ProductForm product={product || null} />
     </div>
   )
 } 

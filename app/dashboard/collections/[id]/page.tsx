@@ -3,18 +3,17 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 
 interface Props {
-  params: {
-    id: string
-  }
+  params: Promise<{ id: string }>
 }
 
 export default async function CollectionPage({ params }: Props) {
-  const isNew = params.id === "new"
+  const { id } = await params
+  const isNew = id === "new"
   let collection = null
 
   if (!isNew) {
     collection = await prisma.collection.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         products: {
           include: {
@@ -41,7 +40,7 @@ export default async function CollectionPage({ params }: Props) {
           {isNew ? "New Collection" : "Edit Collection"}
         </h1>
         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          {isNew ? "Create a new collection" : `Edit ${collection.title}`}
+          {isNew ? "Create a new collection" : `Edit ${collection?.title || ''}`}
         </p>
       </div>
       <CollectionForm collection={collection} />
