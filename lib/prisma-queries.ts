@@ -25,7 +25,6 @@ export async function getProduct(handle: string) {
   });
 
   if (!product) {
-    console.timeEnd('getProduct');
     return null;
   }
 
@@ -42,7 +41,7 @@ export async function getProduct(handle: string) {
     variants
   };
 
-  console.timeEnd('getProduct');
+  
   return result;
 }
 
@@ -99,7 +98,6 @@ export async function getProducts({
     }))
   }));
 
-  console.timeEnd('getProducts');
   return parsedProducts;
 }
 
