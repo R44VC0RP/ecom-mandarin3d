@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import MobileMenu from './mobile-menu';
 import Search, { SearchSkeleton } from './search';
+import UserButton from './user-button';
 
 const NAVIGATION = [
   { title: 'All Products', path: '/search' },
@@ -52,6 +53,7 @@ export async function Navbar() {
             <Search />
           </Suspense>
           <CartModal />
+          <UserButton isLoggedIn={false} />
         </div>
       </div>
     </nav>

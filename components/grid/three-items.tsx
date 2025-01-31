@@ -28,7 +28,7 @@ async function getCollectionProducts(collection: string) {
     return [];
   }
 
-  return collectionData.products.map(cp => cp.product);
+  return collectionData.products.map((cp: any) => cp.product);
 }
 
 function ThreeItemGridItem({

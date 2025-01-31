@@ -25,7 +25,6 @@ export async function getProduct(handle: string) {
   });
 
   if (!product) {
-    console.timeEnd('getProduct');
     return null;
   }
 
@@ -42,7 +41,7 @@ export async function getProduct(handle: string) {
     variants
   };
 
-  console.timeEnd('getProduct');
+  
   return result;
 }
 
@@ -99,7 +98,6 @@ export async function getProducts({
     }))
   }));
 
-  console.timeEnd('getProducts');
   return parsedProducts;
 }
 
@@ -122,13 +120,24 @@ export async function getCollections() {
   return [
     {
       handle: '',
-      title: 'All',
-      description: 'All products',
+      title: 'All Products',
+      description: 'All products in the store',
       seo: {
-        title: 'All',
-        description: 'All products',
+        title: 'All Products',
+        description: 'All products available in our store',
       },
       path: '/search',
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      handle: 'collections',
+      title: 'Collections',
+      description: 'Browse all collections',
+      seo: {
+        title: 'Collections',
+        description: 'Browse all available collections in our store',
+      },
+      path: '/search/collections',
       updatedAt: new Date().toISOString(),
     },
     ...collections.filter(
