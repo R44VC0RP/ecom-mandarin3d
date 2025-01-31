@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="en" className={`${GeistSans.variable} dark`} data-admin-route="false" data-theme="dark">
-      <body className="bg-neutral-50 text-black selection:bg-teal-300 dark:bg-neutral-900 dark:text-white dark:selection:bg-neutral-500 dark:selection:text-white">
+      <body className="bg-white text-neutral-900 selection:bg-teal-300 dark:bg-[#1a1b1e] dark:text-neutral-100 dark:selection:bg-neutral-600 dark:selection:text-white">
         <CartProvider cartPromise={cart}>
           
           <main>

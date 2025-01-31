@@ -3,24 +3,27 @@ import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
-    const products = await prisma.product.findMany({
+    const collections = await prisma.collection.findMany({
       orderBy: {
         updatedAt: "desc"
       },
       include: {
-        featuredImage: true,
-        seo: true
+        _count: {
+          select: {
+            products: true
+          }
+        }
       }
     })
 
     return NextResponse.json({
       success: true,
-      data: products
+      data: collections
     })
   } catch (error) {
-    console.error("Error fetching products:", error)
+    console.error("Error fetching collections:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to fetch products" },
+      { success: false, error: "Failed to fetch collections" },
       { status: 500 }
     )
   }
@@ -29,7 +32,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { title, handle, description, price, compareAtPrice, seo } = body
+    const { title, handle, description, seo } = body
 
     // Validate required fields
     if (!title || !handle) {
@@ -40,25 +43,23 @@ export async function POST(request: Request) {
     }
 
     // Check if handle is unique
-    const existingProduct = await prisma.product.findUnique({
+    const existingCollection = await prisma.collection.findUnique({
       where: { handle }
     })
 
-    if (existingProduct) {
+    if (existingCollection) {
       return NextResponse.json(
-        { success: false, error: "A product with this handle already exists" },
+        { success: false, error: "A collection with this handle already exists" },
         { status: 400 }
       )
     }
 
-    // Create product with SEO if provided
-    const product = await prisma.product.create({
+    // Create collection with SEO if provided
+    const collection = await prisma.collection.create({
       data: {
         title,
         handle,
         description,
-        price: price || 0,
-        compareAtPrice: compareAtPrice || null,
         ...(seo?.title && {
           seo: {
             create: {
@@ -72,12 +73,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      data: product
+      data: collection
     })
   } catch (error) {
-    console.error("Error creating product:", error)
+    console.error("Error creating collection:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to create product" },
+      { success: false, error: "Failed to create collection" },
       { status: 500 }
     )
   }

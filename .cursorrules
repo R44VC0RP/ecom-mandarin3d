@@ -32,7 +32,77 @@
 
 ### Admin Dashboard Setup
 - The file app-sidebar.tsx is the main sidebar for the admin dashboard. It contains the object that defines the sidebar items, whenever you update or add a new sidebar item, you must update the object in the file app-sidebar.tsx for the changes to be reflected in the sidebar.
-- For each new page make it with "<div className="flex flex-col p-6">" as the top level container.
+- For each new page use the standard container: "<div className="mx-auto grid gap-3 px-3 pb-3">"
+
+### Admin Panel Design Standards
+#### Colors
+- Main Background: #1a1b1e (root)
+- Content Background: #1e1f22 (slightly lighter than root)
+- Header Background: #1e1f22/50 with backdrop-blur-xl
+- Borders: neutral-800/50
+- Text Colors:
+  - Primary: neutral-100
+  - Secondary: neutral-400
+  - Muted: neutral-500
+- Status Colors:
+  - Success: green-500/10 (bg), green-400 (text)
+  - Warning: yellow-500/10 (bg), yellow-400 (text)
+  - Error: red-500/10 (bg), red-500 (text)
+
+#### Typography
+- Headings: text-lg font-bold leading-none
+- Subtext: text-xs text-neutral-500 dark:text-neutral-400
+- Table Headers: text-xs font-medium
+- Table Content: text-sm (primary), text-xs (secondary)
+- Status Badges: text-xs font-medium
+
+#### Spacing
+- Page Container: p-3
+- Component Gaps: gap-3
+- Table Cells: px-3 py-2
+- Button Padding: px-3 py-1.5 (sm)
+- Icon Sizes: h-3.5 w-3.5
+
+#### Components
+1. Buttons:
+   - Primary: neutral-100 bg in dark mode
+   - Secondary: neutral-800 bg in dark mode
+   - Destructive: red-900 bg in dark mode
+   - Height: h-7 for compact buttons
+   - Icons: gap-1.5 between icon and text
+
+2. Tables:
+   - Rounded Corners: rounded-md
+   - Header: bg-neutral-50/50 dark:bg-neutral-900/50
+   - Row Hover: bg-neutral-50/50 dark:bg-neutral-900/50
+   - Dense Layout: compact padding and text sizes
+   - Border: border-neutral-200 dark:border-neutral-800
+
+3. Forms:
+   - Input Height: h-8
+   - Placeholder Color: neutral-500 dark:neutral-400
+   - Border: border-neutral-200 dark:border-neutral-800
+   - Background: white dark:bg-[#1a1b1e]
+
+4. Status Badges:
+   - Rounded Full
+   - Compact Padding: px-1.5 py-0.5
+   - Semi-transparent backgrounds
+   - Consistent text size: text-xs
+
+#### Layout
+- Header Height: h-14
+- Content Area: Full height with ScrollArea
+- Sidebar: Collapsible with icon-only mode
+- Breadcrumb: Hidden on mobile (md:block)
+- Glass Effect Headers: backdrop-blur-xl
+
+#### Responsive Design
+- Mobile-first approach
+- Collapsible sidebar on smaller screens
+- Hidden breadcrumbs on mobile
+- Responsive table with horizontal scroll
+- Compact spacing on mobile
 
 ### Components
 - Use React Icons (react-icons/fa) for icons
@@ -88,13 +158,13 @@
 3. Collections List Page (/dashboard/collections)
    - Table view of all collections
    - Quick actions (edit, delete)
-   - Status: Not Started ⏳
+   - Status: Completed ✅
 
 4. Collection Create/Edit Page (/dashboard/collections/[id])
    - Form for collection details
    - Product association management
    - SEO settings
-   - Status: Not Started ⏳
+   - Status: Completed ✅
 
 5. Product Variants Management Page (/dashboard/products/[id]/variants)
    - Create/edit variants

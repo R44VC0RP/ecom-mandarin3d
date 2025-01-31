@@ -17,13 +17,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 bg-white/30 dark:bg-[#393E46] backdrop-blur-lg rounded-t-lg p-4">
-          <div className="flex items-center gap-2 px-4">
+        <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 bg-[#1e1f22]/50 backdrop-blur-xl border-b border-neutral-800/50 rounded-t-lg">
+          <div className="flex items-center gap-2 px-3">
             <SidebarTrigger className="-ml-1" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#" className="text-white">
+                  <BreadcrumbLink href="#" className="text-neutral-200">
                     Dashboard
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -31,8 +31,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Breadcrumb>
           </div>
         </header>
-        <ScrollArea className="p-4 h-full bg-[#393E46]">
-          {children}
+        <ScrollArea className="h-full bg-[#1e1f22]">
+          <div className="p-3">
+            {children}
+          </div>
         </ScrollArea>
       </SidebarInset>
     </SidebarProvider>

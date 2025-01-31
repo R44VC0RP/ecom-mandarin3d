@@ -13,54 +13,42 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { FaEdit, FaSearch, FaTrash } from "react-icons/fa"
 
-interface Image {
-  id: string
-  url: string
-  alt: string | null
-}
-
-interface SEO {
-  title: string
-  description: string | null
-}
-
-interface Product {
+interface Collection {
   id: string
   title: string
   handle: string
   description: string | null
-  price: number
-  compareAtPrice: number | null
-  featuredImage: Image | null
-  seo: SEO | null
   updatedAt: string
+  _count?: {
+    products: number
+  }
 }
 
 interface ApiResponse {
   success: boolean
-  data?: Product[]
+  data?: Collection[]
   error?: string
 }
 
-export function ProductsDataTable() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+export function CollectionsDataTable() {
+  const [collections, setCollections] = useState<Collection[]>([])
+  const [filteredCollections, setFilteredCollections] = useState<Collection[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchCollections = async () => {
       try {
-        const response = await fetch("/api/products")
+        const response = await fetch("/api/collections")
         const data: ApiResponse = await response.json()
 
         if (!data.success || !data.data) {
-          throw new Error(data.error || "Failed to fetch products")
+          throw new Error(data.error || "Failed to fetch collections")
         }
 
-        setProducts(data.data)
-        setFilteredProducts(data.data)
+        setCollections(data.data)
+        setFilteredCollections(data.data)
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred")
       } finally {
@@ -68,39 +56,17 @@ export function ProductsDataTable() {
       }
     }
 
-    fetchProducts()
+    fetchCollections()
   }, [])
 
   useEffect(() => {
-    const filtered = products.filter(product => 
-      product.title.toLowerCase().includes(search.toLowerCase()) ||
-      product.handle.toLowerCase().includes(search.toLowerCase()) ||
-      product.description?.toLowerCase().includes(search.toLowerCase())
+    const filtered = collections.filter(collection => 
+      collection.title.toLowerCase().includes(search.toLowerCase()) ||
+      collection.handle.toLowerCase().includes(search.toLowerCase()) ||
+      collection.description?.toLowerCase().includes(search.toLowerCase())
     )
-    setFilteredProducts(filtered)
-  }, [search, products])
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: "DELETE"
-      })
-
-      const data = await response.json()
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to delete product")
-      }
-
-      setProducts(prev => prev.filter(product => product.id !== id))
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete product")
-    }
-  }
+    setFilteredCollections(filtered)
+  }, [search, collections])
 
   if (error) {
     return (
@@ -116,7 +82,7 @@ export function ProductsDataTable() {
         <FaSearch className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-500" />
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Search collections..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="h-8 w-full rounded-md border border-neutral-200 bg-white pl-8 pr-3 text-sm placeholder:text-neutral-500 dark:border-neutral-800 dark:bg-[#1a1b1e] dark:placeholder:text-neutral-400"
@@ -126,56 +92,42 @@ export function ProductsDataTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Product</TableHead>
+            <TableHead>Title</TableHead>
             <TableHead>Handle</TableHead>
-            <TableHead>Price</TableHead>
+            <TableHead>Products</TableHead>
             <TableHead>Updated</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredProducts.map((product) => (
-            <TableRow key={product.id}>
+          {filteredCollections.map((collection) => (
+            <TableRow key={collection.id}>
               <TableCell>
-                <div className="flex items-center gap-3">
-                  {product.featuredImage && (
-                    <img
-                      src={product.featuredImage.url}
-                      alt={product.featuredImage.alt || product.title}
-                      className="h-8 w-8 rounded-md object-cover"
-                    />
+                <div>
+                  <span className="font-medium">{collection.title}</span>
+                  {collection.description && (
+                    <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
+                      {collection.description}
+                    </p>
                   )}
-                  <div>
-                    <span className="font-medium">{product.title}</span>
-                    {product.description && (
-                      <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
-                        {product.description}
-                      </p>
-                    )}
-                  </div>
                 </div>
               </TableCell>
               <TableCell>
-                <span className="text-xs text-neutral-500 dark:text-neutral-400">{product.handle}</span>
-              </TableCell>
-              <TableCell>
-                <div className="text-xs">
-                  <span className="font-medium">${product.price?.toFixed(2) || "0.00"}</span>
-                  {product.compareAtPrice && (
-                    <span className="ml-1 text-neutral-500 line-through dark:text-neutral-400">
-                      ${product.compareAtPrice?.toFixed(2) || "0.00"}
-                    </span>
-                  )}
-                </div>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">{collection.handle}</span>
               </TableCell>
               <TableCell>
                 <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {new Date(product.updatedAt).toLocaleDateString()}
+                  {collection._count?.products || 0} products
+                </span>
+              </TableCell>
+              <TableCell>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {new Date(collection.updatedAt).toLocaleDateString()}
                 </span>
               </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-1.5">
-                  <Link href={`/dashboard/products/${product.id}`}>
+                  <Link href={`/dashboard/collections/${collection.id}`}>
                     <Button
                       variant="secondary"
                       size="sm"
@@ -189,7 +141,10 @@ export function ProductsDataTable() {
                     variant="destructive"
                     size="sm"
                     className="h-7 w-7 p-0"
-                    onClick={() => handleDelete(product.id)}
+                    onClick={() => {
+                      // TODO: Implement delete
+                      console.log("Delete", collection.id)
+                    }}
                   >
                     <FaTrash className="h-3.5 w-3.5" />
                     <span className="sr-only">Delete</span>
@@ -198,10 +153,10 @@ export function ProductsDataTable() {
               </TableCell>
             </TableRow>
           ))}
-          {!filteredProducts.length && !isLoading && (
+          {!filteredCollections.length && !isLoading && (
             <TableRow>
               <TableCell colSpan={5} className="h-20 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                {search ? "No products found matching your search." : "No products found."}
+                {search ? "No collections found matching your search." : "No collections found."}
               </TableCell>
             </TableRow>
           )}
