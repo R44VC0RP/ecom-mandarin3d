@@ -90,6 +90,7 @@ export default function MobileMenu({ menu }: { menu: MenuItem[] }) {
                       </li>
                     ))}
                   </ul>
+
                 ) : null}
               </div>
             </Dialog.Panel>

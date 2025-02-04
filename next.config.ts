@@ -11,6 +11,16 @@ export default {
         protocol: 'https',
         hostname: 'picsum.photos',
         pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: '0o4pg1fpby.ufs.sh',
+        pathname: '/**'
       }
     ]
   }

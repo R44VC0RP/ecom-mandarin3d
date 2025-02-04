@@ -7,11 +7,13 @@ import Label from '../label';
 
 export function GridTileImage({
   isInteractive = true,
+  showPrice = true,
   active,
   label,
   ...props
 }: {
   isInteractive?: boolean;
+  showPrice?: boolean;
   active?: boolean;
   label?: {
     title: string;
@@ -41,6 +43,7 @@ export function GridTileImage({
       ) : null}
       {label ? (
         <Label
+          showPrice={showPrice}
           title={label.title}
           amount={label.amount}
           currencyCode={label.currencyCode}
