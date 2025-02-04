@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { MdCollections, MdDashboard, MdImage, MdShoppingCart } from "react-icons/md";
+import { MdCollections, MdDashboard, MdImage, MdPages, MdShoppingCart } from "react-icons/md";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader
 } from "@/components/ui/sidebar";
 import LogoSquare from "./logo-square";
 
@@ -36,6 +36,11 @@ const data = {
       title: "Collections",
       url: "/dashboard/collections",
       icon: MdCollections,
+    },
+    {
+      title: "Pages",
+      url: "/dashboard/pages",
+      icon: MdPages,
     },
     {
       title: "Media Library",
