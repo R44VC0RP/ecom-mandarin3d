@@ -24,6 +24,7 @@ model Product {
   seo             SEO?
   collections     CollectionProduct[]
   cartItems       CartItem[]
+  fileUrl         String?          // URL to the downloadable STL file
   updatedAt       DateTime         @updatedAt
   createdAt       DateTime         @default(now())
 }

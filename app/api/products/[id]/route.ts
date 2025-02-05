@@ -8,7 +8,7 @@ export async function PUT(
   try {
     const id = (await params).id
     const body = await request.json()
-    const { title, handle, description, price, compareAtPrice, seo } = body
+    const { title, handle, description, price, fileUrl, slicedFileUrl, slicedFileAttributes, seo } = body
 
     // Validate required fields
     if (!title || !handle) {
@@ -35,14 +35,72 @@ export async function PUT(
       )
     }
 
-    // Update product
-    const product = await prisma.product.update({
+    // Get the current product to update its variant price
+    const currentProduct = await prisma.product.findUnique({
       where: { id },
-      data: {
-        title,
-        handle,
-        description,
-        updatedAt: new Date(),
+      include: {
+        variants: {
+          include: {
+            price: true
+          }
+        },
+        priceRange: {
+          include: {
+            maxVariantPrice: true,
+            minVariantPrice: true
+          }
+        }
+      }
+    })
+
+    if (!currentProduct || !currentProduct.priceRange) {
+      return NextResponse.json(
+        { success: false, error: "Product not found" },
+        { status: 404 }
+      )
+    }
+
+    // Update the price of the default variant
+    if (currentProduct.variants[0]?.price?.id) {
+      await prisma.money.update({
+        where: { id: currentProduct.variants[0].price.id },
+        data: {
+          amount: price.toString()
+        }
+      })
+    }
+
+    // Update the price range
+    if (currentProduct.priceRange.maxVariantPrice?.id) {
+      await prisma.money.update({
+        where: { id: currentProduct.priceRange.maxVariantPrice.id },
+        data: {
+          amount: price.toString()
+        }
+      })
+    }
+
+    if (currentProduct.priceRange.minVariantPrice?.id) {
+      await prisma.money.update({
+        where: { id: currentProduct.priceRange.minVariantPrice.id },
+        data: {
+          amount: price.toString()
+        }
+      })
+    }
+
+    // Update product with the new fields
+    const updateData = {
+      title,
+      handle,
+      description,
+      updatedAt: new Date(),
+      ...(fileUrl !== undefined && { fileUrl }),
+      ...(slicedFileUrl !== undefined && { slicedFileUrl }),
+      ...(slicedFileAttributes !== undefined && { 
+        slicedFileAttributes: slicedFileAttributes ? JSON.stringify(slicedFileAttributes) : null 
+      }),
+      ...(seo && {
         seo: {
           upsert: {
             create: {
@@ -55,7 +113,12 @@ export async function PUT(
             }
           }
         }
-      }
+      })
+    }
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: updateData
     })
 
     return NextResponse.json({
