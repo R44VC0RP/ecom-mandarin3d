@@ -13,7 +13,7 @@ function SubmitButton({
 }: {
   availableForSale: boolean;
   selectedVariantId: string | undefined;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 }) {
   const buttonClasses =
     'relative flex w-full items-center justify-center rounded-full bg-[--m3d-primary-border] p-4 tracking-wide text-white';
@@ -44,14 +44,9 @@ function SubmitButton({
 
   return (
     <button
-      onClick={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
+      onClick={onClick}
       aria-label="Add to cart"
-      className={clsx(buttonClasses, {
-        'hover:opacity-90': true
-      })}
+      className={clsx(buttonClasses, 'hover:opacity-90')}
     >
       <div className="absolute left-0 ml-4">
         <PlusIcon className="h-5" />
@@ -67,23 +62,26 @@ export function AddToCart({ product }: { product: Product }) {
   const { state } = useProduct();
 
   const variant = variants.find((variant: ProductVariant) =>
-    variant.selectedOptions.every((option) => option.value === state[option.name.toLowerCase()])
+    variant.selectedOptions.every(
+      (option) => option.value === state[option.name.toLowerCase()]
+    )
   );
   const defaultVariantId = variants.length === 1 ? variants[0]?.id : undefined;
   const selectedVariantId = variant?.id || defaultVariantId;
-  const finalVariant = variants.find((variant) => variant.id === selectedVariantId)!;
+  const finalVariant = variants.find((v) => v.id === selectedVariantId);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (finalVariant) {
       addCartItem(finalVariant, product);
     }
   };
 
   return (
-    <form>
-      <SubmitButton 
-        availableForSale={availableForSale} 
-        selectedVariantId={selectedVariantId} 
+    <form onSubmit={(e) => e.preventDefault()}>
+      <SubmitButton
+        availableForSale={availableForSale}
+        selectedVariantId={selectedVariantId}
         onClick={handleAddToCart}
       />
     </form>
