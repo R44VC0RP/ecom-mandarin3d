@@ -70,7 +70,8 @@ export default function CustomPage() {
 
       try {
         const response = await startUpload([file]);
-        if (!response || !response[0]?.url) throw new Error('Upload failed');
+        const uploadedUrl = response?.[0]?.url;
+        if (!uploadedUrl) throw new Error('Upload failed');
 
         setUploadedFiles(prev => {
           const newFiles = [...prev];
@@ -80,7 +81,7 @@ export default function CustomPage() {
               ...newFiles[fileIndex],
               progress: 100,
               status: 'completed',
-              url: response[0].url
+              url: uploadedUrl
             };
           }
           return newFiles;

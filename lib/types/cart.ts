@@ -48,20 +48,27 @@ export interface CartLine {
   };
 }
 
-export type CartItem = {
-  productId: string;
-  variantId: string;
-  quantity: number;
-  title: string;
-  price: number;
-  image?: {
-    url: string;
-    altText: string | null;
+export interface Cart {
+  id?: string;
+  totalQuantity: number;
+  lines: CartLine[];
+  checkoutUrl?: string;
+  cost: {
+    id: string;
+    subtotalAmount: {
+      id: string;
+      amount: string;
+      currencyCode: string;
+    };
+    totalAmount: {
+      id: string;
+      amount: string;
+      currencyCode: string;
+    };
+    totalTaxAmount: {
+      id: string;
+      amount: string;
+      currencyCode: string;
+    };
   };
-};
-
-export type Cart = {
-  items: CartItem[];
-  totalItems: number;
-  totalPrice: number;
-}; 
+} 
