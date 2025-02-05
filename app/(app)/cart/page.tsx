@@ -235,16 +235,11 @@ export default function CartPage() {
                             value={item.quantity}
                             onChange={(e) => {
                               const newQuantity = parseInt(e.target.value);
-                              const currentQuantity = item.quantity;
-                              if (newQuantity > currentQuantity) {
-                                updateCartItem(item.merchandise.id, 'plus');
-                              } else if (newQuantity < currentQuantity) {
-                                updateCartItem(item.merchandise.id, 'minus');
-                              }
+                              updateCartItem(item.merchandise.id, 'set', newQuantity);
                             }}
                             className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-1 text-sm"
                           >
-                            {[...Array(10)].map((_, i) => (
+                            {[...Array(20)].map((_, i) => (
                               <option key={i + 1} value={i + 1}>
                                 {i + 1}
                               </option>

@@ -9,7 +9,16 @@ export class PrismaStorageAdapter implements CartStorage {
     this.userId = userId;
   }
 
+  private isBrowser() {
+    return typeof window !== 'undefined';
+  }
+
   async get(): Promise<Cart | null> {
+    if (this.isBrowser()) {
+      console.warn('Attempted to use PrismaStorageAdapter in browser');
+      return null;
+    }
+
     if (!this.userId) return null;
 
     try {
@@ -86,6 +95,11 @@ export class PrismaStorageAdapter implements CartStorage {
   }
 
   async set(cart: Cart): Promise<void> {
+    if (this.isBrowser()) {
+      console.warn('Attempted to use PrismaStorageAdapter in browser');
+      return;
+    }
+
     if (!this.userId) throw new Error('User ID is required for server-side cart operations');
     if (!cart) throw new Error('Cart is required');
 
@@ -185,6 +199,11 @@ export class PrismaStorageAdapter implements CartStorage {
   }
 
   async remove(): Promise<void> {
+    if (this.isBrowser()) {
+      console.warn('Attempted to use PrismaStorageAdapter in browser');
+      return;
+    }
+
     if (!this.userId) return;
 
     try {
@@ -198,6 +217,11 @@ export class PrismaStorageAdapter implements CartStorage {
   }
 
   async merge(serverCart: Cart | undefined, localCart: Cart | null): Promise<Cart> {
+    if (this.isBrowser()) {
+      console.warn('Attempted to use PrismaStorageAdapter in browser');
+      return localCart || this.createEmptyCart();
+    }
+
     if (!this.userId) throw new Error('User ID is required for cart merge');
     if (!localCart) return serverCart || this.createEmptyCart();
 

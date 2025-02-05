@@ -17,7 +17,13 @@ export class CartManager {
 
   async getCart(): Promise<Cart> {
     try {
-      // Get cart from both storages
+      // In the browser, only use local storage
+      if (typeof window !== 'undefined') {
+        const localCart = await this.localStorageAdapter.get();
+        return localCart || this.createEmptyCart();
+      }
+
+      // On the server, try to get both carts and merge
       const [localCart, serverCart] = await Promise.all([
         this.localStorageAdapter.get(),
         this.serverStorageAdapter?.get() ?? Promise.resolve(null)
@@ -76,7 +82,11 @@ export class CartManager {
     });
   }
 
-  async updateQuantity(merchandiseId: string, action: 'plus' | 'minus' | 'delete'): Promise<Cart> {
+  async updateQuantity(
+    merchandiseId: string, 
+    action: 'plus' | 'minus' | 'delete' | 'set',
+    quantity?: number
+  ): Promise<Cart> {
     const currentCart = await this.getCart();
 
     const updatedLines = currentCart.lines
@@ -84,7 +94,14 @@ export class CartManager {
         if (line.merchandise.id !== merchandiseId) return line;
         
         if (action === 'delete') return null;
-        const newQuantity = action === 'plus' ? line.quantity + 1 : line.quantity - 1;
+        if (action === 'set' && quantity !== undefined) {
+          return quantity > 0 ? { ...line, quantity } : null;
+        }
+        
+        const newQuantity = action === 'plus' 
+          ? line.quantity + 1 
+          : line.quantity - 1;
+        
         return newQuantity > 0 ? { ...line, quantity: newQuantity } : null;
       })
       .filter((line): line is NonNullable<typeof line> => line !== null);
@@ -139,7 +156,13 @@ export class CartManager {
       }
     };
 
-    // Update both storages
+    // In browser, only update local storage
+    if (typeof window !== 'undefined') {
+      await this.localStorageAdapter.set(updatedCart);
+      return updatedCart;
+    }
+
+    // On server, update both storages
     await Promise.all([
       this.localStorageAdapter.set(updatedCart),
       this.serverStorageAdapter?.set(updatedCart)

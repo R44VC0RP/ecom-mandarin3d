@@ -9,7 +9,7 @@ type CartContextType = {
   cart: Cart | undefined;
   isLoading: boolean;
   addCartItem: (variant: ProductVariant, product: Product) => Promise<void>;
-  updateCartItem: (merchandiseId: string, action: 'plus' | 'minus' | 'delete') => Promise<void>;
+  updateCartItem: (merchandiseId: string, action: 'plus' | 'minus' | 'delete' | 'set', quantity?: number) => Promise<void>;
   updatePrintSettings: (merchandiseId: string, layerHeight: number, infill: number) => Promise<void>;
 };
 
@@ -60,10 +60,14 @@ export function CartProvider({
     }
   };
 
-  const updateCartItem = async (merchandiseId: string, action: 'plus' | 'minus' | 'delete') => {
+  const updateCartItem = async (
+    merchandiseId: string, 
+    action: 'plus' | 'minus' | 'delete' | 'set',
+    quantity?: number
+  ) => {
     try {
       setIsLoading(true);
-      const updatedCart = await cartManager.updateQuantity(merchandiseId, action);
+      const updatedCart = await cartManager.updateQuantity(merchandiseId, action, quantity);
       setCart(updatedCart);
     } catch (error) {
       console.error('Error updating cart item:', error);
