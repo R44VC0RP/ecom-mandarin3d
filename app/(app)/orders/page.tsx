@@ -71,7 +71,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="mx-auto grid gap-3 px-3 pb-3">
+    <div className="mx-auto grid max-w-screen-lg gap-3 px-3 pb-3">
       <div className="rounded-lg border border-neutral-700/50 bg-[#1e1f22] p-6">
         <h1 className="text-2xl font-bold text-neutral-100">Your Orders</h1>
         <div className="mt-6 space-y-4">

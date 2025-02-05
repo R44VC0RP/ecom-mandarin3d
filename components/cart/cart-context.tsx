@@ -53,6 +53,11 @@ function createOrUpdateCartItem(
         handle: product.handle,
         title: product.title,
         featuredImage: product.featuredImage
+          ? {
+              url: product.featuredImage.url,
+              altText: product.featuredImage.altText || undefined
+            }
+          : undefined
       }
     }
   };

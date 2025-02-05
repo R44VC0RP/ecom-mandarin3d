@@ -11,15 +11,23 @@ if (!process.env.GOOGLE_CLIENT_SECRET) {
   throw new Error("Missing GOOGLE_CLIENT_SECRET");
 }
 
-const adapter = PrismaAdapter(prisma);
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error("Missing NEXTAUTH_SECRET");
+}
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
-  adapter,
+  adapter: PrismaAdapter(prisma) as any,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          prompt: "select_account"
+        }
+      },
       profile(profile) {
         return {
           id: profile.sub,
@@ -33,15 +41,16 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    session: async ({ session, user }) => {
+    async session({ session, token, user }) {
       if (session?.user) {
-        session.user.id = user.id;
-        session.user.role = user.role;
+        session.user.id = token.id as string;
+        session.user.role = token.role as any;
       }
       return session;
     },
-    jwt: async ({ token, user }) => {
+    async jwt({ token, user, account, profile }) {
       if (user) {
+        token.id = user.id;
         token.role = user.role;
       }
       return token;
@@ -52,7 +61,7 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   session: {
-    strategy: "database",
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 }; 
