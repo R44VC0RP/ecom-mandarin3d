@@ -8,12 +8,14 @@ type UpdateType = 'plus' | 'minus' | 'delete';
 
 type CartAction =
   | { type: 'UPDATE_ITEM'; payload: { merchandiseId: string; updateType: UpdateType } }
-  | { type: 'ADD_ITEM'; payload: { variant: ProductVariant; product: Product } };
+  | { type: 'ADD_ITEM'; payload: { variant: ProductVariant; product: Product } }
+  | { type: 'UPDATE_PRINT_SETTINGS'; payload: { merchandiseId: string; layerHeight: number; infill: number } };
 
 type CartContextType = {
   cart: Cart | undefined;
   updateCartItem: (merchandiseId: string, updateType: UpdateType) => void;
   addCartItem: (variant: ProductVariant, product: Product) => void;
+  updatePrintSettings: (merchandiseId: string, layerHeight: number, infill: number) => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -115,6 +117,16 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
 
       return { ...currentCart, ...updateCartTotals(updatedLines), lines: updatedLines };
     }
+    case 'UPDATE_PRINT_SETTINGS': {
+      const { merchandiseId, layerHeight, infill } = action.payload;
+      const updatedLines = currentCart.lines.map((item) =>
+        item.merchandise.id === merchandiseId
+          ? { ...item, printSettings: { layerHeight, infill } }
+          : item
+      );
+
+      return { ...currentCart, lines: updatedLines };
+    }
     default:
       return currentCart;
   }
@@ -142,11 +154,21 @@ export function CartProvider({
     });
   };
 
+  const updatePrintSettings = (merchandiseId: string, layerHeight: number, infill: number) => {
+    startTransition(() => {
+      updateOptimisticCart({
+        type: 'UPDATE_PRINT_SETTINGS',
+        payload: { merchandiseId, layerHeight, infill }
+      });
+    });
+  };
+
   const value = useMemo(
     () => ({
       cart: optimisticCart,
       updateCartItem,
-      addCartItem
+      addCartItem,
+      updatePrintSettings
     }),
     [optimisticCart]
   );

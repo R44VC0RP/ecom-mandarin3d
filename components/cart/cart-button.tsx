@@ -11,7 +11,7 @@ export default function CartButton() {
     <Link href="/cart" className="relative">
       <button
         aria-label="Cart"
-        className="h-10 w-10 rounded-md border border-neutral-200 bg-white p-2 dark:border-neutral-700 dark:bg-black"
+        className="relative flex h-11 w-11 items-center justify-center rounded-md border border-neutral-200 text-black transition-colors hover:border-neutral-300 dark:border-neutral-700 dark:text-white dark:hover:border-neutral-600"
       >
         <ShoppingCartIcon className="h-5 w-5 text-black transition-all ease-in-out hover:scale-110 dark:text-white" />
         {cart?.totalQuantity ? (
