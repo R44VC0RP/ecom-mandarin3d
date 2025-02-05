@@ -1,8 +1,9 @@
 import { CartProvider } from 'components/cart/cart-context';
 import { Providers } from 'components/providers';
 import { GeistSans } from 'geist/font/sans';
+import { authOptions } from 'lib/auth';
 import { getCart } from 'lib/prisma-queries';
-import { cookies } from 'next/headers';
+import { getServerSession } from 'next-auth';
 import { Suspense } from 'react';
 import './globals.css';
 
@@ -31,12 +32,10 @@ export const metadata = {
   })
 };
 
-
 // Server component
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookiesInstance = await cookies();
-  const cartId = cookiesInstance.get('cartId')?.value;
-  const cartPromise = getCart(cartId);
+  const session = await getServerSession(authOptions);
+  const cartPromise = getCart(session?.user?.id);
 
   return (
     <html lang="en" className={`${GeistSans.variable} dark`} data-admin-route="false" data-theme="dark">

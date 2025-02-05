@@ -1,15 +1,17 @@
 'use client';
 
+import { cartStorage } from 'lib/cart-storage';
 import { Product, ProductVariant } from 'lib/types';
 import { Cart, CartLine } from 'lib/types/cart';
-import React, { createContext, startTransition, use, useContext, useMemo, useOptimistic } from 'react';
+import React, { createContext, startTransition, use, useContext, useEffect, useMemo, useOptimistic } from 'react';
 
 type UpdateType = 'plus' | 'minus' | 'delete';
 
 type CartAction =
   | { type: 'UPDATE_ITEM'; payload: { merchandiseId: string; updateType: UpdateType } }
   | { type: 'ADD_ITEM'; payload: { variant: ProductVariant; product: Product } }
-  | { type: 'UPDATE_PRINT_SETTINGS'; payload: { merchandiseId: string; layerHeight: number; infill: number } };
+  | { type: 'UPDATE_PRINT_SETTINGS'; payload: { merchandiseId: string; layerHeight: number; infill: number } }
+  | { type: 'SYNC_WITH_SERVER'; payload: Cart | undefined };
 
 type CartContextType = {
   cart: Cart | undefined;
@@ -52,12 +54,7 @@ function createOrUpdateCartItem(
         id: product.id,
         handle: product.handle,
         title: product.title,
-        featuredImage: product.featuredImage
-          ? {
-              url: product.featuredImage.url,
-              altText: product.featuredImage.altText || undefined
-            }
-          : undefined
+        featuredImage: product.featuredImage || null
       }
     }
   };
@@ -109,7 +106,9 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
         return createEmptyCart();
       }
 
-      return { ...currentCart, ...updateCartTotals(updatedLines), lines: updatedLines };
+      const newCart = { ...currentCart, ...updateCartTotals(updatedLines), lines: updatedLines };
+      cartStorage.set(newCart);
+      return newCart;
     }
     case 'ADD_ITEM': {
       const { variant, product } = action.payload;
@@ -120,7 +119,9 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
         ? currentCart.lines.map((item) => (item.merchandise.id === variant.id ? updatedItem : item))
         : [...currentCart.lines, updatedItem];
 
-      return { ...currentCart, ...updateCartTotals(updatedLines), lines: updatedLines };
+      const newCart = { ...currentCart, ...updateCartTotals(updatedLines), lines: updatedLines };
+      cartStorage.set(newCart);
+      return newCart;
     }
     case 'UPDATE_PRINT_SETTINGS': {
       const { merchandiseId, layerHeight, infill } = action.payload;
@@ -130,7 +131,16 @@ function cartReducer(state: Cart | undefined, action: CartAction): Cart {
           : item
       );
 
-      return { ...currentCart, lines: updatedLines };
+      const newCart = { ...currentCart, lines: updatedLines };
+      cartStorage.set(newCart);
+      return newCart;
+    }
+    case 'SYNC_WITH_SERVER': {
+      const localCart = cartStorage.get();
+      const serverCart = action.payload;
+      const mergedCart = cartStorage.merge(serverCart, localCart);
+      cartStorage.set(mergedCart);
+      return mergedCart;
     }
     default:
       return currentCart;
@@ -146,6 +156,13 @@ export function CartProvider({
 }) {
   const initialCart = use(cartPromise);
   const [optimisticCart, updateOptimisticCart] = useOptimistic(initialCart, cartReducer);
+
+  // Sync with server cart on mount
+  useEffect(() => {
+    startTransition(() => {
+      updateOptimisticCart({ type: 'SYNC_WITH_SERVER', payload: initialCart });
+    });
+  }, [initialCart]);
 
   const updateCartItem = (merchandiseId: string, updateType: UpdateType) => {
     startTransition(() => {

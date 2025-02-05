@@ -1,4 +1,3 @@
-
 export type Money = {
   id: string;
   amount: string;
@@ -17,6 +16,15 @@ export type SelectedOption = {
   value: string;
 };
 
+export type FeaturedImage = {
+  id?: string;
+  productId?: string | null;
+  url: string;
+  altText: string | null;
+  width?: number;
+  height?: number;
+};
+
 export interface CartLine {
   id: string;
   quantity: number;
@@ -31,10 +39,7 @@ export interface CartLine {
       id: string;
       handle: string;
       title: string;
-      featuredImage?: {
-        url: string;
-        altText?: string;
-      };
+      featuredImage: FeaturedImage | null;
     };
   };
   printSettings?: {
