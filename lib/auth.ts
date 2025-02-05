@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
           email: profile.email,
           image: profile.picture,
           emailVerified: profile.email_verified ? new Date().toISOString() : null,
+          role: 'USER' // Default role for new users
         }
       },
     }),
@@ -35,9 +36,16 @@ export const authOptions: NextAuthOptions = {
     session: async ({ session, user }) => {
       if (session?.user) {
         session.user.id = user.id;
+        session.user.role = user.role;
       }
       return session;
     },
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    }
   },
   pages: {
     signIn: "/auth/signin",
