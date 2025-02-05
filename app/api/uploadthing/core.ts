@@ -31,6 +31,15 @@ export const ourFileRouter = {
       console.log("Upload complete for userId:", metadata)
       console.log("File URL", file.url)
     }),
+
+  stlFile: f({ "application/octet-stream": { maxFileSize: "32MB" } })
+    .middleware(async () => {
+      return { };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload complete for file:", file.url);
+      return { url: file.url };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

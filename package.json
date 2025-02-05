@@ -5,8 +5,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "prettier": "prettier --write --ignore-unknown .",
-    "prettier:check": "prettier --check --ignore-unknown .",
-    "test": "pnpm prettier:check"
+    "prettier:check": "prettier --check --ignore-unknown ."
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -16,6 +15,8 @@
     "@heroicons/react": "^2.2.0",
     "@mandarin3d/slicing-sdk": "^1.0.1",
     "@modelcontextprotocol/sdk": "^1.4.1",
+    "@napi-rs/canvas": "^0.1.66",
+    "@napi-rs/canvas-linux-x64-gnu": "^0.1.66",
     "@prisma/client": "^6.3.0",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.2",
@@ -25,6 +26,7 @@
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.7",
+    "@scalenc/stl-to-png": "^1.2.0",
     "@uploadthing/react": "^7.1.5",
     "bun": "^1.2.2",
     "class-variance-authority": "^0.7.1",

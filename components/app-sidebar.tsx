@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { MdCollections, MdDashboard, MdImage, MdPages, MdShoppingCart } from "react-icons/md";
+import { MdBuildCircle, MdCollections, MdDashboard, MdImage, MdPages, MdShoppingCart } from "react-icons/md";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -46,6 +46,11 @@ const data = {
       title: "Media Library",
       url: "/dashboard/media",
       icon: MdImage,
+    },
+    {
+      title: "Dev Tools",
+      url: "/dashboard/dev-tools",
+      icon: MdBuildCircle,
     },
   ],
 }
