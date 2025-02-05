@@ -1,9 +1,9 @@
 import { CartProvider } from 'components/cart/cart-context';
+import { Providers } from 'components/providers';
 import { GeistSans } from 'geist/font/sans';
 import { getCart } from 'lib/prisma-queries';
 import { cookies } from 'next/headers';
-import { ReactNode } from 'react';
-import { Toaster } from 'sonner';
+import { Suspense } from 'react';
 import './globals.css';
 
 const { SITE_NAME } = process.env;
@@ -31,20 +31,24 @@ export const metadata = {
   })
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const cartId = (await cookies()).get('cartId')?.value;
-  // Don't await the fetch, pass the Promise to the context provider
-  const cart = getCart(cartId);
+
+// Server component
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cartId = cookies().get('cartId')?.value;
+  const cartPromise = getCart(cartId);
 
   return (
     <html lang="en" className={`${GeistSans.variable} dark`} data-admin-route="false" data-theme="dark">
       <body className="bg-white text-neutral-900 selection:bg-teal-300 dark:bg-[#1a1b1e] dark:text-neutral-100 dark:selection:bg-neutral-600 dark:selection:text-white">
-        <CartProvider cartPromise={cart}>
-            <main>
-              {children}
-              <Toaster closeButton />
-            </main>
-        </CartProvider>
+        <Providers>
+          <Suspense>
+            <CartProvider cartPromise={cartPromise}>
+              <main>
+                {children}
+              </main>
+            </CartProvider>
+          </Suspense>
+        </Providers>
       </body>
     </html>
   );

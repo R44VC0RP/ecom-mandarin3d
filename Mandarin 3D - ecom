@@ -1,0 +1,26 @@
+# Project Note
+
+## Phase 1: NextAuth Setup ✅
+- [x] Install NextAuth dependencies
+- [x] Update Prisma schema for auth
+- [x] Create auth configuration
+- [x] Add sign-in page
+- [x] Add error page
+
+## Phase 2: Cart Storage Refactor 🔄
+- [ ] Create local storage cart manager
+- [ ] Update cart context to handle both storage types
+- [ ] Remove cartId from root layout
+- [ ] Add cart merging logic
+
+## Phase 3: User Cart Management ⏳
+- [ ] Update cart API endpoints
+- [ ] Add user cart persistence
+- [ ] Implement cart sync logic
+- [ ] Add cart migration on login
+
+## Phase 4: Performance Optimization ⏳
+- [ ] Remove cart loading from root layout
+- [ ] Implement cart caching
+- [ ] Add loading states
+- [ ] Optimize cart updates 

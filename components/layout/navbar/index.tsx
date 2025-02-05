@@ -31,7 +31,6 @@ export async function Navbar() {
               MANDARIN3D<span className="text-[var(--m3d-primary)] font-bold">CUSTOM</span>
             </div>
           </Link>
-
         </div>
         <div className="hidden justify-end md:flex md:w-1/3 mr-10">
           <ul className="hidden gap-6 text-sm md:flex md:items-center">
@@ -48,20 +47,16 @@ export async function Navbar() {
             ))}
           </ul>
         </div>
-        <div className="hidden md:flex items-center justify-end space-x-2 md:w-1/3 ">
-
+        <div className="hidden md:flex items-center justify-end space-x-2 md:w-1/3">
           <Suspense fallback={<SearchSkeleton />}>
             <Search />
           </Suspense>
-
           <CartButton />
-
           <div className="hidden md:block">
-            <UserButton isLoggedIn={false} />
+            <UserButton />
           </div>
-
         </div>
-        <div className="flex md:hidden items-center justify-end space-x-2 md:w-1/3 ">
+        <div className="flex md:hidden items-center justify-end space-x-2 md:w-1/3">
           <CartButton />
         </div>
       </div>
