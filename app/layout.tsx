@@ -42,7 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-white text-neutral-900 selection:bg-teal-300 dark:bg-[#1a1b1e] dark:text-neutral-100 dark:selection:bg-neutral-600 dark:selection:text-white">
         <Providers>
           <Suspense>
-            <CartProvider cartPromise={cartPromise}>
+            <CartProvider cartPromise={cartPromise} userId={session?.user?.id}>
               <main>
                 {children}
               </main>

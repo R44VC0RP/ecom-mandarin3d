@@ -1,106 +1,175 @@
+import { DefaultCartCalculator } from './cart-calculator';
+import { LocalStorageAdapter } from './cart-storage-local';
+import { PrismaStorageAdapter } from './cart-storage-prisma';
 import { Product, ProductVariant } from './types';
-import { Cart, CartItem } from './types/cart';
+import { Cart } from './types/cart';
 
-const CART_STORAGE_KEY = 'mandarin3d_cart';
+export class CartManager {
+  private localStorageAdapter: LocalStorageAdapter;
+  private serverStorageAdapter: PrismaStorageAdapter | null;
+  private calculator: DefaultCartCalculator;
 
-const createEmptyCart = (): Cart => ({
-  items: [],
-  totalItems: 0,
-  totalPrice: 0
-});
-
-const calculateCartTotals = (items: CartItem[]): { totalItems: number; totalPrice: number } => {
-  return items.reduce(
-    (acc, item) => ({
-      totalItems: acc.totalItems + item.quantity,
-      totalPrice: acc.totalPrice + item.price * item.quantity
-    }),
-    { totalItems: 0, totalPrice: 0 }
-  );
-};
-
-export const CartManager = {
-  getCart: (): Cart => {
-    if (typeof window === 'undefined') return createEmptyCart();
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    if (!stored) return createEmptyCart();
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return createEmptyCart();
-    }
-  },
-
-  saveCart: (cart: Cart) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-  },
-
-  addItem: (product: Product, variant: ProductVariant): Cart => {
-    const cart = CartManager.getCart();
-    const existingItemIndex = cart.items.findIndex(item => item.variantId === variant.id);
-
-    if (existingItemIndex > -1) {
-      // Update quantity if item exists
-      cart.items[existingItemIndex].quantity += 1;
-    } else {
-      // Add new item
-      cart.items.push({
-        productId: product.id,
-        variantId: variant.id,
-        quantity: 1,
-        title: product.title,
-        price: parseFloat(variant.price.amount),
-        image: product.featuredImage ? {
-          url: product.featuredImage.url,
-          altText: product.featuredImage.altText
-        } : undefined
-      });
-    }
-
-    const totals = calculateCartTotals(cart.items);
-    cart.totalItems = totals.totalItems;
-    cart.totalPrice = totals.totalPrice;
-
-    CartManager.saveCart(cart);
-    return cart;
-  },
-
-  removeItem: (variantId: string): Cart => {
-    const cart = CartManager.getCart();
-    cart.items = cart.items.filter(item => item.variantId !== variantId);
-    
-    const totals = calculateCartTotals(cart.items);
-    cart.totalItems = totals.totalItems;
-    cart.totalPrice = totals.totalPrice;
-
-    CartManager.saveCart(cart);
-    return cart;
-  },
-
-  updateQuantity: (variantId: string, quantity: number): Cart => {
-    const cart = CartManager.getCart();
-    const itemIndex = cart.items.findIndex(item => item.variantId === variantId);
-    
-    if (itemIndex > -1) {
-      if (quantity <= 0) {
-        return CartManager.removeItem(variantId);
-      }
-      cart.items[itemIndex].quantity = quantity;
-      
-      const totals = calculateCartTotals(cart.items);
-      cart.totalItems = totals.totalItems;
-      cart.totalPrice = totals.totalPrice;
-
-      CartManager.saveCart(cart);
-    }
-    
-    return cart;
-  },
-
-  clearCart: (): Cart => {
-    const emptyCart = createEmptyCart();
-    CartManager.saveCart(emptyCart);
-    return emptyCart;
+  constructor(userId?: string) {
+    this.localStorageAdapter = new LocalStorageAdapter();
+    this.serverStorageAdapter = userId ? new PrismaStorageAdapter(userId) : null;
+    this.calculator = new DefaultCartCalculator();
   }
-}; 
+
+  async getCart(): Promise<Cart> {
+    try {
+      // Get cart from both storages
+      const [localCart, serverCart] = await Promise.all([
+        this.localStorageAdapter.get(),
+        this.serverStorageAdapter?.get() ?? Promise.resolve(null)
+      ]);
+
+      // If we have a server cart, merge it with local cart
+      if (this.serverStorageAdapter && serverCart) {
+        return this.serverStorageAdapter.merge(serverCart, localCart);
+      }
+
+      // Otherwise, return local cart or create new one
+      return localCart || this.createEmptyCart();
+    } catch (error) {
+      console.error('Error getting cart:', error);
+      return this.createEmptyCart();
+    }
+  }
+
+  async addItem(variant: ProductVariant, product: Product): Promise<Cart> {
+    const currentCart = await this.getCart();
+    const existingLine = currentCart.lines.find(line => line.merchandise.id === variant.id);
+
+    const updatedLines = existingLine
+      ? currentCart.lines.map(line =>
+          line.merchandise.id === variant.id
+            ? { ...line, quantity: line.quantity + 1 }
+            : line
+        )
+      : [
+          ...currentCart.lines,
+          {
+            id: '',
+            quantity: 1,
+            merchandise: {
+              id: variant.id,
+              title: variant.title,
+              price: variant.price,
+              product: {
+                id: product.id,
+                handle: product.handle,
+                title: product.title,
+                featuredImage: product.featuredImage
+              }
+            },
+            printSettings: {
+              layerHeight: 0.2,
+              infill: 20
+            }
+          }
+        ];
+
+    return this.updateCart({
+      ...currentCart,
+      lines: updatedLines,
+      totalQuantity: updatedLines.reduce((sum, line) => sum + line.quantity, 0)
+    });
+  }
+
+  async updateQuantity(merchandiseId: string, action: 'plus' | 'minus' | 'delete'): Promise<Cart> {
+    const currentCart = await this.getCart();
+
+    const updatedLines = currentCart.lines
+      .map(line => {
+        if (line.merchandise.id !== merchandiseId) return line;
+        
+        if (action === 'delete') return null;
+        const newQuantity = action === 'plus' ? line.quantity + 1 : line.quantity - 1;
+        return newQuantity > 0 ? { ...line, quantity: newQuantity } : null;
+      })
+      .filter((line): line is NonNullable<typeof line> => line !== null);
+
+    return this.updateCart({
+      ...currentCart,
+      lines: updatedLines,
+      totalQuantity: updatedLines.reduce((sum, line) => sum + line.quantity, 0)
+    });
+  }
+
+  async updatePrintSettings(
+    merchandiseId: string,
+    layerHeight: number,
+    infill: number
+  ): Promise<Cart> {
+    const currentCart = await this.getCart();
+
+    const updatedLines = currentCart.lines.map(line =>
+      line.merchandise.id === merchandiseId
+        ? {
+            ...line,
+            printSettings: {
+              layerHeight,
+              infill
+            }
+          }
+        : line
+    );
+
+    return this.updateCart({
+      ...currentCart,
+      lines: updatedLines,
+      totalQuantity: updatedLines.reduce((sum, line) => sum + line.quantity, 0)
+    });
+  }
+
+  private async updateCart(cart: Cart): Promise<Cart> {
+    // Calculate totals
+    const subtotal = this.calculator.calculateSubtotal(cart.lines);
+    const tax = this.calculator.calculateTax(subtotal);
+    const total = this.calculator.calculateTotal(subtotal, tax);
+
+    const updatedCart: Cart = {
+      ...cart,
+      totalQuantity: cart.lines.reduce((sum, line) => sum + line.quantity, 0),
+      cost: {
+        id: cart.cost.id,
+        subtotalAmount: subtotal,
+        totalAmount: total,
+        totalTaxAmount: tax
+      }
+    };
+
+    // Update both storages
+    await Promise.all([
+      this.localStorageAdapter.set(updatedCart),
+      this.serverStorageAdapter?.set(updatedCart)
+    ]);
+
+    return updatedCart;
+  }
+
+  private createEmptyCart(): Cart {
+    return {
+      totalQuantity: 0,
+      lines: [],
+      cost: {
+        id: '',
+        subtotalAmount: {
+          id: '',
+          amount: '0',
+          currencyCode: 'USD'
+        },
+        totalAmount: {
+          id: '',
+          amount: '0',
+          currencyCode: 'USD'
+        },
+        totalTaxAmount: {
+          id: '',
+          amount: '0',
+          currencyCode: 'USD'
+        }
+      }
+    };
+  }
+} 

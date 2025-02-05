@@ -5,52 +5,93 @@ import { Product, ProductVariant } from 'lib/types';
 import { Cart } from 'lib/types/cart';
 import { createContext, useContext, useEffect, useState } from 'react';
 
-interface CartContextType {
-  cart: Cart;
-  addCartItem: (variant: ProductVariant, product: Product) => void;
-  removeCartItem: (variantId: string) => void;
-  updateCartItemQuantity: (variantId: string, quantity: number) => void;
-  clearCart: () => void;
-}
+type CartContextType = {
+  cart: Cart | undefined;
+  isLoading: boolean;
+  addCartItem: (variant: ProductVariant, product: Product) => Promise<void>;
+  updateCartItem: (merchandiseId: string, action: 'plus' | 'minus' | 'delete') => Promise<void>;
+  updatePrintSettings: (merchandiseId: string, layerHeight: number, infill: number) => Promise<void>;
+};
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<Cart>(CartManager.getCart());
+export function CartProvider({
+  children,
+  cartPromise,
+  userId
+}: {
+  children: React.ReactNode;
+  cartPromise: Promise<Cart | undefined>;
+  userId?: string;
+}) {
+  const [cart, setCart] = useState<Cart>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [cartManager] = useState(() => new CartManager(userId));
 
   useEffect(() => {
-    // Initialize cart from local storage
-    setCart(CartManager.getCart());
-  }, []);
+    const initCart = async () => {
+      try {
+        const initialCart = await cartPromise;
+        if (initialCart) {
+          const mergedCart = await cartManager.getCart();
+          setCart(mergedCart);
+        } else {
+          setCart(await cartManager.getCart());
+        }
+      } catch (error) {
+        console.error('Error initializing cart:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const addCartItem = (variant: ProductVariant, product: Product) => {
-    const updatedCart = CartManager.addItem(product, variant);
-    setCart(updatedCart);
+    initCart();
+  }, [cartPromise, cartManager]);
+
+  const addCartItem = async (variant: ProductVariant, product: Product) => {
+    try {
+      setIsLoading(true);
+      const updatedCart = await cartManager.addItem(variant, product);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeCartItem = (variantId: string) => {
-    const updatedCart = CartManager.removeItem(variantId);
-    setCart(updatedCart);
+  const updateCartItem = async (merchandiseId: string, action: 'plus' | 'minus' | 'delete') => {
+    try {
+      setIsLoading(true);
+      const updatedCart = await cartManager.updateQuantity(merchandiseId, action);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateCartItemQuantity = (variantId: string, quantity: number) => {
-    const updatedCart = CartManager.updateQuantity(variantId, quantity);
-    setCart(updatedCart);
-  };
-
-  const clearCart = () => {
-    const emptyCart = CartManager.clearCart();
-    setCart(emptyCart);
+  const updatePrintSettings = async (merchandiseId: string, layerHeight: number, infill: number) => {
+    try {
+      setIsLoading(true);
+      const updatedCart = await cartManager.updatePrintSettings(merchandiseId, layerHeight, infill);
+      setCart(updatedCart);
+    } catch (error) {
+      console.error('Error updating print settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <CartContext.Provider
       value={{
         cart,
+        isLoading,
         addCartItem,
-        removeCartItem,
-        updateCartItemQuantity,
-        clearCart
+        updateCartItem,
+        updatePrintSettings
       }}
     >
       {children}
