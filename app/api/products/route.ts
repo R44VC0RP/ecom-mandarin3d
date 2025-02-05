@@ -6,10 +6,6 @@ export async function GET() {
     const products = await prisma.product.findMany({
       orderBy: {
         updatedAt: "desc"
-      },
-      include: {
-        featuredImage: true,
-        seo: true
       }
     })
 
@@ -29,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { title, handle, description, price, compareAtPrice, seo } = body
+    const { title, handle, description, price, fileUrl, slicedFileUrl, slicedFileAttributes, seo } = body
 
     // Validate required fields
     if (!title || !handle) {
@@ -51,15 +47,50 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create product with SEO if provided
+    // Create money record for price
+    const moneyRecord = await prisma.money.create({
+      data: {
+        amount: price.toString(),
+        currencyCode: "USD"
+      }
+    })
+
+    // Create product with new fields
     const product = await prisma.product.create({
       data: {
         title,
         handle,
         description,
-        price: price || 0,
-        compareAtPrice: compareAtPrice || null,
-        ...(seo?.title && {
+        fileUrl: fileUrl || null,
+        slicedFileUrl: slicedFileUrl || null,
+        slicedFileAttributes: slicedFileAttributes ? JSON.stringify(slicedFileAttributes) : null,
+        variants: {
+          create: {
+            title: "Default Variant",
+            availableForSale: true,
+            selectedOptions: [],
+            price: {
+              connect: {
+                id: moneyRecord.id
+              }
+            }
+          }
+        },
+        priceRange: {
+          create: {
+            maxVariantPrice: {
+              connect: {
+                id: moneyRecord.id
+              }
+            },
+            minVariantPrice: {
+              connect: {
+                id: moneyRecord.id
+              }
+            }
+          }
+        },
+        ...(seo && {
           seo: {
             create: {
               title: seo.title,

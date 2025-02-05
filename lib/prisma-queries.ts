@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { Cart, Money } from './types/cart';
 
 export async function getProduct(handle: string) {
   console.time('getProduct');
@@ -250,13 +251,13 @@ export async function getProductRecommendations(productId: string) {
   });
 }
 
-export async function getCart(cartId: string | undefined) {
+export async function getCart(cartId: string | undefined): Promise<Cart | undefined> {
   if (!cartId) {
     return undefined;
   }
 
   const cart = await prisma.cart.findUnique({
-    where: { id: cartId },
+    where: { userId: cartId },
     include: {
       items: {
         include: {
@@ -282,16 +283,38 @@ export async function getCart(cartId: string | undefined) {
 
   if (!cart) return undefined;
 
-  return {
-    id: cart.id,
-    lines: cart.items.map(item => ({
+  // Ensure we have valid money objects with required fields
+  const subtotalAmount: Money = {
+    id: cart.subtotalAmount?.id ?? '',
+    amount: cart.subtotalAmount?.amount ?? '0',
+    currencyCode: cart.subtotalAmount?.currencyCode ?? 'USD'
+  };
+
+  const totalAmount: Money = {
+    id: cart.totalAmount?.id ?? '',
+    amount: cart.totalAmount?.amount ?? '0',
+    currencyCode: cart.totalAmount?.currencyCode ?? 'USD'
+  };
+
+  const totalTaxAmount: Money = {
+    id: cart.totalTaxAmount?.id ?? '',
+    amount: cart.totalTaxAmount?.amount ?? '0',
+    currencyCode: cart.totalTaxAmount?.currencyCode ?? 'USD'
+  };
+
+  // Filter out items with null variants and map to CartLine type
+  const lines = cart.items
+    .filter((item): item is (typeof item & { variant: NonNullable<typeof item.variant> }) => 
+      item.variant !== null
+    )
+    .map(item => ({
       id: item.id,
       quantity: item.quantity,
       merchandise: {
         id: item.variant.id,
         title: item.variant.title,
-        selectedOptions: typeof item.variant.selectedOptions === 'string' 
-          ? JSON.parse(item.variant.selectedOptions as string)
+        selectedOptions: typeof item.variant.selectedOptions === 'string'
+          ? JSON.parse(item.variant.selectedOptions)
           : item.variant.selectedOptions,
         price: item.variant.price,
         product: {
@@ -299,21 +322,25 @@ export async function getCart(cartId: string | undefined) {
           handle: item.variant.product.handle,
           title: item.variant.product.title,
           featuredImage: item.variant.product.featuredImage,
-        }
-      }
-    })),
+        },
+      },
+      printSettings: {
+        layerHeight: item.layerHeight,
+        infill: item.infill,
+      },
+    }));
+
+  // Return cart with correct type structure
+  return {
+    id: cart.id,
     totalQuantity: cart.totalQuantity,
+    lines,
     cost: {
       id: cart.id,
-      subtotalAmount: cart.subtotalAmount,
-      totalAmount: cart.totalAmount,
-      totalTaxAmount: cart.totalTaxAmount || {
-        id: '',
-        amount: '0',
-        currencyCode: 'USD'
-      }
+      subtotalAmount,
+      totalAmount,
+      totalTaxAmount,
     },
-    checkoutUrl: cart.checkoutUrl
   };
 }
 
@@ -400,8 +427,8 @@ export async function addToCart(cartId: string, variantId: string, quantity: num
   }
 
   // Calculate new cart totals
-  const currentSubtotal = Number(currentCart.subtotalAmount.amount);
-  const newSubtotal = currentSubtotal + Number(itemTotal.amount);
+  const currentSubtotal = currentCart.subtotalAmount?.amount ?? '0';
+  const newSubtotal = (Number(currentSubtotal) + Number(itemTotal.amount)).toString();
 
   return prisma.cart.update({
     where: { id: cartId },
@@ -417,12 +444,12 @@ export async function addToCart(cartId: string, variantId: string, quantity: num
       totalQuantity: { increment: quantity },
       subtotalAmount: { 
         update: { 
-          amount: newSubtotal.toString(),
+          amount: newSubtotal,
         }
       },
       totalAmount: { 
         update: { 
-          amount: newSubtotal.toString(), // For now, total = subtotal (no tax/shipping)
+          amount: newSubtotal, // For now, total = subtotal (no tax/shipping)
         }
       },
     },
@@ -475,9 +502,9 @@ export async function removeFromCart(cartId: string, lineId: string) {
   }
 
   // Calculate new totals
-  const currentSubtotal = Number(currentCart.subtotalAmount.amount);
-  const itemAmount = Number(cartItem.totalAmount.amount);
-  const newSubtotal = currentSubtotal - itemAmount;
+  const currentSubtotal = currentCart.subtotalAmount?.amount ?? '0';
+  const itemAmount = cartItem.totalAmount?.amount ?? '0';
+  const newSubtotal = (Number(currentSubtotal) - Number(itemAmount)).toString();
 
   return prisma.cart.update({
     where: { id: cartId },
@@ -488,12 +515,12 @@ export async function removeFromCart(cartId: string, lineId: string) {
       totalQuantity: { decrement: cartItem.quantity },
       subtotalAmount: { 
         update: { 
-          amount: newSubtotal.toString(),
+          amount: newSubtotal,
         }
       },
       totalAmount: { 
         update: { 
-          amount: newSubtotal.toString(), // For now, total = subtotal (no tax/shipping)
+          amount: newSubtotal, // For now, total = subtotal (no tax/shipping)
         }
       },
     },
@@ -534,8 +561,8 @@ export async function updateCartItem(cartId: string, lineId: string, quantity: n
     },
   });
 
-  if (!cartItem) {
-    throw new Error('Cart item not found');
+  if (!cartItem || !cartItem.variant) {
+    throw new Error('Cart item or variant not found');
   }
 
   const currentCart = await prisma.cart.findUnique({
@@ -557,9 +584,9 @@ export async function updateCartItem(cartId: string, lineId: string, quantity: n
   };
 
   // Calculate cart totals
-  const currentSubtotal = Number(currentCart.subtotalAmount.amount);
-  const oldItemAmount = Number(cartItem.totalAmount.amount);
-  const newSubtotal = currentSubtotal - oldItemAmount + Number(newItemTotal.amount);
+  const currentSubtotal = currentCart.subtotalAmount?.amount ?? '0';
+  const oldItemAmount = cartItem.totalAmount?.amount ?? '0';
+  const newSubtotal = (Number(currentSubtotal) - Number(oldItemAmount) + Number(newItemTotal.amount)).toString();
 
   const quantityDiff = quantity - cartItem.quantity;
 
@@ -578,12 +605,12 @@ export async function updateCartItem(cartId: string, lineId: string, quantity: n
       totalQuantity: { increment: quantityDiff },
       subtotalAmount: { 
         update: { 
-          amount: newSubtotal.toString(),
+          amount: newSubtotal,
         }
       },
       totalAmount: { 
         update: { 
-          amount: newSubtotal.toString(), // For now, total = subtotal (no tax/shipping)
+          amount: newSubtotal, // For now, total = subtotal (no tax/shipping)
         }
       },
     },

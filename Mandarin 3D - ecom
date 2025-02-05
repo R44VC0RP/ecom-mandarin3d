@@ -1,0 +1,244 @@
+# Project Note
+
+## Phase 1: NextAuth Setup ✅
+- [x] Install NextAuth dependencies
+- [x] Update Prisma schema for auth
+- [x] Create auth configuration
+- [x] Add sign-in page
+- [x] Add error page
+
+## Phase 2: Cart Storage Refactor 🔄
+- [ ] Create local storage cart manager
+- [ ] Update cart context to handle both storage types
+- [ ] Remove cartId from root layout
+- [ ] Add cart merging logic
+
+## Phase 3: User Cart Management ⏳
+- [ ] Update cart API endpoints
+- [ ] Add user cart persistence
+- [ ] Implement cart sync logic
+- [ ] Add cart migration on login
+
+## Phase 4: Performance Optimization ⏳
+- [ ] Remove cart loading from root layout
+- [ ] Implement cart caching
+- [ ] Add loading states
+- [ ] Optimize cart updates 
+
+# Mandarin 3D Cart System Implementation Plan
+
+## Implementation Progress
+
+### ✅ Phase 1: Core Cart Types and Interfaces
+- [x] Create `lib/cart.ts` with base interfaces
+- [x] Define CartStorage interface
+- [x] Define CartCalculator interface
+- [x] Define CartManager class structure
+- [x] Add operation types and interfaces
+
+### ✅ Phase 2: Core Implementations
+- [x] Implement CartCalculator in `lib/cart-calculator.ts`
+  - [x] Line total calculation
+  - [x] Subtotal calculation
+  - [x] Tax calculation (placeholder)
+  - [x] Total calculation
+- [x] Implement LocalStorageAdapter in `lib/cart-storage-local.ts`
+  - [x] Basic storage operations
+  - [x] Cart merging logic
+  - [x] Error handling
+  - [x] SSR safety checks
+- [x] Implement PrismaStorageAdapter in `lib/cart-storage-prisma.ts`
+  - [x] Database operations
+  - [x] Type conversions
+  - [x] Error handling
+  - [x] Fix type issues with Prisma create/update operations
+
+### ✅ Phase 3: Cart Manager Implementation
+- [x] Implement addItem operation
+- [x] Implement updateQuantity operation
+- [x] Implement updatePrintSettings operation
+- [x] Implement clear operation
+- [x] Add recalculation logic
+
+### 🔄 Phase 4: Context Integration
+- [x] Update CartContext to use new CartManager
+- [x] Add loading states
+- [ ] Fix type issues in getCart function
+- [ ] Update cart components to use new context
+- [ ] Add error handling and recovery
+
+### ⏳ Phase 5: Testing & Validation
+- [ ] Type checking
+- [ ] Functionality testing
+- [ ] Storage sync testing
+- [ ] Error handling testing
+
+## Current Issues
+1. Type mismatch in getCart function
+   - Need to ensure Money objects are never null
+   - Need to handle nullable fields properly
+   - Need to update Prisma queries to match Cart type
+
+2. Cart Component Updates Needed
+   - AddToCart component needs loading state
+   - CartButton needs to handle loading state
+   - CartPage needs error handling
+   - Need to handle cart sync errors
+
+## Next Steps
+1. Fix type issues in getCart function
+2. Update cart components to handle loading states
+3. Add error handling and recovery
+4. Test cart synchronization
+
+## Notes
+- CartCalculator implementation complete with placeholder tax calculation
+- All monetary calculations use string-based amounts to prevent floating-point issues
+- Currency code validation added to prevent mismatched currencies
+- LocalStorageAdapter includes SSR safety checks and proper error handling
+- Cart merging logic preserves print settings and handles quantity aggregation
+- PrismaStorageAdapter implementation complete with proper type handling
+- Money records are now managed separately from Cart records to avoid type conflicts
+- Default values are provided for all nullable fields
+- Print settings are always defined with sensible defaults
+- CartManager implementation complete with proper error handling and type safety
+- Cart operations now properly handle both local and server storage
+- Cart calculations are now centralized in the CartManager
+- CartContext updated to use new CartManager
+- Loading states added to cart operations
+- Need to ensure proper type safety in getCart function
+
+## Current State Analysis
+- Cart functionality is spread across multiple files
+- Mix of local storage and server-side cart management
+- Type inconsistencies between client and server
+- Complex state management in cart context
+- Need for better sync between local and server storage
+
+## Implementation Plan
+
+### Phase 1: Core Cart Types and Interfaces
+1. Create `lib/cart.ts` as central cart management
+2. Define core interfaces:
+   - `CartStorage` - Storage adapter interface
+   - `CartManager` - Main cart management class
+   - `CartOperations` - Available cart operations
+   - `CartCalculator` - Price/total calculation utilities
+
+### Phase 2: Storage Implementation
+1. Implement Local Storage Adapter
+   - Save/load cart state
+   - Handle serialization/deserialization
+   - Manage storage errors
+2. Implement Server Storage Adapter
+   - Prisma operations
+   - Error handling
+   - Type conversion
+
+### Phase 3: Cart Manager Implementation
+1. Core Cart Operations:
+   - Add item
+   - Update quantity
+   - Remove item
+   - Update print settings
+   - Clear cart
+2. Cart Calculations:
+   - Line item totals
+   - Cart subtotal
+   - Tax calculations
+   - Total quantity
+3. Cart Synchronization:
+   - Merge local/server carts
+   - Handle conflicts
+   - Maintain consistency
+
+### Phase 4: Context Integration
+1. Update CartContext:
+   - Use new CartManager
+   - Simplify state management
+   - Improve error handling
+2. Update Components:
+   - Modify AddToCart
+   - Update CartButton
+   - Fix CartPage
+   - Handle loading states
+
+### Phase 5: Testing & Validation
+1. Type Checking:
+   - Ensure consistent types
+   - Validate type safety
+   - Fix type errors
+2. Functionality Testing:
+   - Test all operations
+   - Verify calculations
+   - Check storage sync
+3. Error Handling:
+   - Test edge cases
+   - Verify error states
+   - Implement recovery
+
+## Implementation Steps
+
+1. [ ] Create base cart.ts file with interfaces
+2. [ ] Implement storage adapters
+3. [ ] Build CartManager class
+4. [ ] Add calculation utilities
+5. [ ] Update CartContext
+6. [ ] Modify components
+7. [ ] Test and validate
+8. [ ] Fix type errors
+9. [ ] Document functionality
+
+## Cart.ts Structure
+
+```typescript
+// Core interfaces
+interface CartStorage {
+  get(): Promise<StoredCart | null>;
+  set(cart: StoredCart): Promise<void>;
+  remove(): Promise<void>;
+}
+
+class CartManager {
+  private storage: CartStorage;
+  private calculator: CartCalculator;
+  
+  // Core operations
+  async addItem(): Promise<void>;
+  async updateQuantity(): Promise<void>;
+  async removeItem(): Promise<void>;
+  async updatePrintSettings(): Promise<void>;
+  
+  // Utilities
+  private async sync(): Promise<void>;
+  private async calculate(): Promise<void>;
+}
+
+class CartCalculator {
+  calculateLineTotal(): Money;
+  calculateSubtotal(): Money;
+  calculateTax(): Money;
+  calculateTotal(): Money;
+}
+```
+
+## Notes
+- Keep all cart logic in cart.ts
+- Use TypeScript strict mode
+- Maintain single source of truth
+- Handle all edge cases
+- Provide clear error messages
+- Document all public methods
+- Use proper type guards
+- Implement proper error recovery
+- Maintain backward compatibility
+- Consider performance implications
+
+## Success Criteria
+- No type errors
+- Consistent behavior
+- Proper error handling
+- Clean integration
+- Maintainable code
+- Good performance
+- Clear documentation 

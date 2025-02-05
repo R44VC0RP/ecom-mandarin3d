@@ -1,5 +1,3 @@
-import { Product } from '../types';
-
 export type Money = {
   id: string;
   amount: string;
@@ -18,25 +16,59 @@ export type SelectedOption = {
   value: string;
 };
 
-export type CartLine = {
+export type FeaturedImage = {
+  id?: string;
+  productId?: string | null;
+  url: string;
+  altText: string | null;
+  width?: number;
+  height?: number;
+};
+
+export interface CartLine {
   id: string;
   quantity: number;
-  cost?: {
-    totalAmount: Money;
-  };
   merchandise: {
     id: string;
     title: string;
-    selectedOptions?: SelectedOption[];
-    price: Money;
-    product: Pick<Product, 'id' | 'handle' | 'title' | 'featuredImage'>;
+    price: {
+      amount: string;
+      currencyCode: string;
+    };
+    product: {
+      id: string;
+      handle: string;
+      title: string;
+      featuredImage: FeaturedImage | null;
+    };
   };
-};
+  printSettings?: {
+    layerHeight: number;
+    infill: number;
+  };
+}
 
-export type Cart = {
-  id: string | undefined;
-  lines: CartLine[];
+export interface Cart {
+  id?: string;
   totalQuantity: number;
-  cost: CartCost;
+  lines: CartLine[];
   checkoutUrl?: string;
-}; 
+  cost: {
+    id: string;
+    subtotalAmount: {
+      id: string;
+      amount: string;
+      currencyCode: string;
+    };
+    totalAmount: {
+      id: string;
+      amount: string;
+      currencyCode: string;
+    };
+    totalTaxAmount: {
+      id: string;
+      amount: string;
+      currencyCode: string;
+    };
+  };
+} 
