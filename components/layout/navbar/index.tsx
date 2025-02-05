@@ -1,4 +1,4 @@
-import CartModal from 'components/cart/modal';
+import CartButton from 'components/cart/cart-button';
 import LogoSquare from 'components/logo-square';
 import Link from 'next/link';
 import { Suspense } from 'react';
@@ -54,7 +54,7 @@ export async function Navbar() {
             <Search />
           </Suspense>
 
-          <CartModal />
+          <CartButton />
 
           <div className="hidden md:block">
             <UserButton isLoggedIn={false} />
@@ -62,7 +62,7 @@ export async function Navbar() {
 
         </div>
         <div className="flex md:hidden items-center justify-end space-x-2 md:w-1/3 ">
-          <CartModal />
+          <CartButton />
         </div>
       </div>
     </nav>
