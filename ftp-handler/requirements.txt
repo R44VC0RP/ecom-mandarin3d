@@ -1,0 +1,4 @@
+pyftpdlib==1.5.9
+requests==2.31.0 
+python-dotenv==1.0.0
+resend==0.7.2
