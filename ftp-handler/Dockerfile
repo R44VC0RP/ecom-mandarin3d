@@ -10,10 +10,12 @@ RUN apt-get update && \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
+# Create a non-root user and set up directories with proper permissions
 RUN useradd -m -u 1000 ftpuser && \
     mkdir -p /app/uploads && \
-    chown -R ftpuser:ftpuser /app
+    chown -R ftpuser:ftpuser /app && \
+    chmod 755 /app && \
+    chmod 777 /app/uploads
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
@@ -25,8 +27,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY entry.py .
 COPY .env .
 
-# Set proper permissions
+# Set proper permissions for application files
 RUN chown -R ftpuser:ftpuser /app && \
+    chmod 644 /app/entry.py /app/.env && \
     chmod 755 /app/uploads
 
 # Switch to non-root user
@@ -36,11 +39,14 @@ USER ftpuser
 EXPOSE 21
 EXPOSE 21000-21010
 
-# Set environment variables for passive mode
-ENV PYTHONUNBUFFERED=1
-ENV FTP_PASV_ADDRESS=0.0.0.0
-ENV FTP_PASV_MIN_PORT=21000
-ENV FTP_PASV_MAX_PORT=21010
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    FTP_PASV_ADDRESS=0.0.0.0 \
+    FTP_PASV_MIN_PORT=21000 \
+    FTP_PASV_MAX_PORT=21010
+
+# Create volume for uploads
+VOLUME ["/app/uploads"]
 
 # Run the FTP server
 CMD ["python", "entry.py"] 
