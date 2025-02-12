@@ -150,18 +150,63 @@ class MyFTPHandler(FTPHandler):
         # Upload to UploadThing
         if not UPLOADTHING_API_KEY:
             print("Warning: UPLOADTHING_API_KEY not set. Skipping upload.")
+            os.remove(file_path)  # Delete file if we can't process it
             return
             
         if upload_to_uploadthing(file_path):
             print(f"Successfully processed file: {file_path}")
+            # Delete the file after successful upload
+            try:
+                os.remove(file_path)
+                print(f"Successfully deleted processed file: {file_path}")
+            except OSError as e:
+                print(f"Error deleting processed file: {str(e)}")
         else:
             print(f"Failed to process file: {file_path}")
+            # Delete the file if upload failed
+            try:
+                os.remove(file_path)
+                print(f"Deleted failed upload file: {file_path}")
+            except OSError as e:
+                print(f"Error deleting failed file: {str(e)}")
+
+    def list_directory(self, path):
+        """Custom directory listing that only shows readme.txt"""
+        readme_path = os.path.join(path, "readme.txt")
+        # Create readme.txt if it doesn't exist
+        if not os.path.exists(readme_path):
+            with open(readme_path, "w") as f:
+                f.write("Welcome to Mandarin3D FTP Upload Service\n")
+                f.write("You can upload files to this directory.\n")
+                f.write("Files will be automatically processed after upload.\n")
+
+        # Only list readme.txt
+        if self.use_list_a:
+            listing = []
+            try:
+                st = os.stat(readme_path)
+                listing.append(self.format_list(readme_path, st))
+            except OSError:
+                pass
+            return listing
+        else:
+            listing = []
+            try:
+                st = os.stat(readme_path)
+                listing.append(self.format_mlsx(readme_path, st))
+            except OSError:
+                pass
+            return listing
 
 
 def main():
+    # Ensure uploads directory exists
+    if not os.path.exists("uploads"):
+        os.makedirs("uploads")
+
     authorizer = DummyAuthorizer()
-    # Allow anonymous upload only to the specified directory with write permission
-    authorizer.add_anonymous("uploads/", perm="w")
+    # Allow anonymous write access and limited list access
+    authorizer.add_anonymous("uploads/", perm="elw")  # 'e' for enter, 'l' for list, 'w' for write
 
     handler = MyFTPHandler
     handler.authorizer = authorizer
