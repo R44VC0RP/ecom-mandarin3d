@@ -11,7 +11,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
-UPLOAD_LIMIT = 5  # Maximum allowed files per hour
+UPLOAD_LIMIT = 10  # Maximum allowed files per hour
 upload_records = {}  # Dictionary to track upload timestamps per user
 
 # UploadThing Configuration
@@ -205,8 +205,8 @@ def main():
         os.makedirs("uploads")
 
     authorizer = DummyAuthorizer()
-    # Allow anonymous write access and limited list access
-    authorizer.add_anonymous("uploads/", perm="elw")  # 'e' for enter, 'l' for list, 'w' for write
+    # Add single user account with write access
+    authorizer.add_user("mandarin3d", "m3d2024!", "uploads/", perm="elw")  # 'e' for enter, 'l' for list, 'w' for write
 
     handler = MyFTPHandler
     handler.authorizer = authorizer

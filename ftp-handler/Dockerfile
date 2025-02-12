@@ -45,8 +45,10 @@ ENV PYTHONUNBUFFERED=1 \
     FTP_PASV_MIN_PORT=21000 \
     FTP_PASV_MAX_PORT=21010
 
-# Create volume for uploads
-VOLUME ["/app/uploads"]
+RUN mkdir -p /app/uploads
+RUN chown -R ftpuser:ftpuser /app && \
+    chmod 755 /app && \
+    chmod 777 /app/uploads
 
 # Run the FTP server
 CMD ["python", "entry.py"] 
